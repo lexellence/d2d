@@ -7,9 +7,8 @@
 ** Source code file for string manipulation functions
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2StringManip.h"
-#include <string>
-#include <boost/algorithm/string.hpp>
 namespace d2d
 {
 	std::string GetUpperCase(const std::string& str)

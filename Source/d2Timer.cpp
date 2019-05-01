@@ -7,8 +7,8 @@
 ** Source code file for the Timer class
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Timer.h"
-#include <SDL.h>
 namespace d2d
 {
 	Timer::Timer()

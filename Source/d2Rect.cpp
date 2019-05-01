@@ -7,8 +7,8 @@
 ** Source code file for the Rect class
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Rect.h"
-#include <Box2D/Box2D.h>
 namespace d2d
 {
 	Rect::Rect(const b2Vec2& newLowerBound, const b2Vec2& newUpperBound)

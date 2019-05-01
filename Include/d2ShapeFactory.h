@@ -8,10 +8,6 @@
 **
 \**************************************************************************************/
 #pragma once
-#include <Box2D/Box2D.h>
-#include <string>
-#include <vector>
-#include <map>
 namespace d2d
 {
 	const unsigned int maxPolygonVertices{ b2_maxPolygonVertices };

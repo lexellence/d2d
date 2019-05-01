@@ -8,9 +8,6 @@
 **
 \**************************************************************************************/
 #pragma once
-#include <boost/log/trivial.hpp>
-#include <Box2D/Box2D.h>
-#include <SDL.h>
 
 // Logging
 using d2LogSeverity = boost::log::trivial::severity_level;

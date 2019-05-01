@@ -7,16 +7,12 @@
 ** Source code file for the Menu class
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Menu.h"
 #include "d2Utility.h"
 #include "d2Window.h"
 #include "d2Color.h"
 #include "d2Rect.h"
-#include <SDL.h>
-#include <Box2D/Box2D.h>
-#include <string>
-#include <vector>
-#include <queue>
 namespace d2d
 {
 	Menu::Menu(const std::vector<std::string>& buttonTextList, const d2d::Color& buttonTextColor, unsigned buttonFontID, float buttonFontSize,

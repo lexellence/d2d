@@ -7,8 +7,9 @@
 ** Source code file for the Resource, ResourceReference classes
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Resource.h"
-#include <string>
+#include "d2Utility.h"
 
 namespace d2d
 {

@@ -9,7 +9,6 @@
 \**************************************************************************************/
 #pragma once
 #include "d2Utility.h"
-#include <string>
 namespace d2d
 {	
 	struct GamepadSettings

@@ -7,18 +7,12 @@
 ** Source code file for the Window class
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Window.h"
 #include "d2Utility.h"
 #include "d2Resource.h"
 #include "d2Timer.h"
 #include "d2NumberManip.h"
-#include "drawtext.h"
-#include <GL/GLU.h>
-#include <SDL.h>
-#include <SDL_opengl.h>
-#include <SDL_image.h>
-#include <Box2D/Box2D.h>
-#include <string>
 namespace d2d
 {
 	namespace Window

@@ -7,14 +7,9 @@
 ** Source code file for the ShapeFactory class
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2ShapeFactory.h"
 #include "d2Utility.h"
-#include <boost/property_tree/xml_parser.hpp>
-#include <SDL.h>
-#include <Box2D/Box2D.h>
-#include <string>
-#include <vector>
-#include <map>
 
 namespace d2d
 {

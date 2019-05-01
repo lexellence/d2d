@@ -11,12 +11,6 @@
 #include "d2Resource.h"
 #include "d2Color.h"
 #include "d2Rect.h"
-#include "drawtext.h"
-#include <SDL.h>
-#include <SDL_opengl.h>
-#include <Box2D/Box2D.h>
-#include <array>
-#include <string>
 namespace d2d
 {
 	struct OpenGLSettings

@@ -9,8 +9,6 @@
 \**************************************************************************************/
 #pragma once
 #include "d2Color.h"
-#include "hjson.h"
-#include <string>
 namespace d2d
 {
 	using HjsonValue = Hjson::Value;

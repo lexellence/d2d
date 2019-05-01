@@ -7,14 +7,9 @@
 ** Source code file for miscellaneous useful things
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Utility.h"
 #include "d2StringManip.h"
-#include <Box2D/Box2D.h>
-#include <SDL.h>
-#include <SDL_image.h>
-#include <string>
-#include <fstream>
-#include <sstream>
 
 const b2Vec2 operator*(b2Vec2 v1, const b2Vec2& v2)
 {

@@ -7,11 +7,10 @@
 ** Source code file for random number functions
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Random.h"
 #include "d2Range.h"
 #include "d2Rect.h"
-#include <Box2D/Box2D.h>
-#include <random>
 namespace d2d
 {
 	namespace

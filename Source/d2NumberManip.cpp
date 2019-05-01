@@ -7,9 +7,9 @@
 ** Source code file for number manipulation functions
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2NumberManip.h"
 #include "d2Range.h"
-#include <Box2D/Box2D.h>
 namespace d2d
 {
 	//+---------------------------\-------------------------------

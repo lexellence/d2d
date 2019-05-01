@@ -7,15 +7,11 @@
 ** Source code file for startup and shutdown functions
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Main.h"
 #include "d2Utility.h"
 #include "d2Window.h"
 #include "d2StringManip.h"
-#include <SDL.h>
-#include <boost/log/core.hpp>
-#include <boost/log/utility/setup/file.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <sstream>
 namespace d2d
 {
 	namespace

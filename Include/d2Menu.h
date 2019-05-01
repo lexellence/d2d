@@ -10,11 +10,6 @@
 #pragma once
 #include "d2Color.h"
 #include "d2Rect.h"
-#include <SDL.h>
-#include <Box2D/Box2D.h>
-#include <string>
-#include <vector>
-#include <queue>
 namespace d2d
 {
 	class Menu

@@ -8,10 +8,6 @@
 **
 \**************************************************************************************/
 #pragma once
-#include <string>
-#include <vector>
-#include <sstream>
-#include <boost/lexical_cast.hpp>
 namespace d2d
 {
 	// Convert the case of all letters in a string

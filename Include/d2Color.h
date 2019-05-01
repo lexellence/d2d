@@ -9,7 +9,6 @@
 \**************************************************************************************/
 #pragma once
 #include "d2Range.h"
-#include "d2Color.h"
 namespace d2d
 {
 	struct Color

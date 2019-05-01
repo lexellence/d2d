@@ -9,11 +9,6 @@
 \**************************************************************************************/
 #pragma once
 #include "d2Utility.h"
-#include <SDL.h>
-#include <stack>
-#include <vector>
-#include <map>
-#include <string>
 namespace d2d
 {
 	class Resource

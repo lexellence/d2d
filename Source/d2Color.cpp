@@ -7,6 +7,7 @@
 ** Source code file for the Color class
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Color.h"
 #include "d2Utility.h"
 #include "d2NumberManip.h" 
