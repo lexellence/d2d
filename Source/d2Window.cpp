@@ -176,12 +176,8 @@ namespace d2d
 		TextureReference::TextureReference(const std::string& filename)
 			: ResourceReference(filename, m_textureManager.Load(filename))
 		{
-			d2LogDebug << "TextureReference::Load handle: " << GetID();
 			m_widthToHeightRatio = m_textureManager.GetResource(GetID()).GetWidthToHeightRatio();
 		}
-		TextureReference::TextureReference(const char* filename)
-			: TextureReference((std::string)filename)
-		{}
 		TextureReference::~TextureReference()
 		{
 			m_textureManager.Unload(GetID());
@@ -193,12 +189,7 @@ namespace d2d
 
 		FontReference::FontReference(const std::string& filename)
 			: ResourceReference(filename, m_fontManager.Load(filename))
-		{
-			d2LogDebug << "FontReference::Load handle: " << GetID();
-		}
-		FontReference::FontReference(const char* filename)
-			: FontReference((std::string)filename)
-		{}
+		{ }
 		FontReference::~FontReference()
 		{
 			m_fontManager.Unload(GetID());

@@ -53,7 +53,7 @@ namespace d2d
 		{
 			auto indexIterator{ m_filenameIndexMap.find(filename) };
 			unsigned handle;
-			d2LogFatal << "Resource::Load " << filename;
+
 			// If no index with the same filename
 			if(indexIterator == m_filenameIndexMap.end())
 			{
@@ -82,7 +82,6 @@ namespace d2d
 				SDL_assert(m_resourcePtrList[handle] != nullptr);
 				m_resourcePtrList.at(handle)->IncrementReferenceCount();
 			}
-			d2LogDebug << "Loaded handle: " << handle;
 			return handle;
 		}
 		void Unload(unsigned handle)
@@ -119,7 +118,6 @@ namespace d2d
 		// Throws exception if handle not found
 		const ResourceType& GetResource(unsigned handle) const
 		{
-			d2LogDebug << "GetResource handle: " << handle;
 			SDL_assert_release(handle < m_resourcePtrList.size());
 			return *m_resourcePtrList[handle];
 		}

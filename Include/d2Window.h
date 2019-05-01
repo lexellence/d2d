@@ -74,7 +74,6 @@ namespace d2d
 		{
 		public:
 			TextureReference(const std::string& filename);
-			TextureReference(const char* filename);
 			~TextureReference();
 			float GetWidthToHeightRatio() const;
 		private:
@@ -85,7 +84,6 @@ namespace d2d
 		{
 		public:
 			FontReference(const std::string& filename);
-			FontReference(const char* filename);
 			~FontReference();
 		};
 

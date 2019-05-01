@@ -43,14 +43,13 @@
 #include <vector>
 #include <array>
 #include <list>
-#include <string>
 #include <queue>
 #include <stack>
 #include <map>
 #include <sstream>
 #include <fstream>
 #include <random>
-
-
+#include <string>
+using namespace std::string_literals;
 
 
