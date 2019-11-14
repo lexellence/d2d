@@ -4,7 +4,7 @@
 ** Author: David Leksen
 ** Date: 
 **
-** Header file for the precompiled header
+** Precompiled header file
 **
 \**************************************************************************************/
 #pragma once
@@ -27,6 +27,7 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <SDL_image.h>
+#include <SDL_net.h>
 #include <GL/GLU.h>
 #include <Box2D/Box2D.h>
 #include "drawtext.h"
@@ -49,6 +50,7 @@
 #include <sstream>
 #include <fstream>
 #include <random>
+#include <climits>
 #include <string>
 using namespace std::string_literals;
 

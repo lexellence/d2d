@@ -15,20 +15,16 @@
 #include "d2Rect.h"
 namespace d2d
 {
-	Menu::Menu(const std::vector<std::string>& buttonTextList, const d2d::Color& buttonTextColor, unsigned buttonFontID, float buttonFontSize,
-			   const std::string& title, const d2d::Color& titleColor, unsigned titleFontID, float titleFontSize,
-			   const d2d::Color& buttonColor, const d2d::Color& buttonHighlightColor, d2d::Color m_buttonBorderColor, const d2d::Color& backgroundColor)
-		: m_buttonTextList{ buttonTextList },
-		m_buttonTextColor{ buttonTextColor },
-		m_buttonFontID{ buttonFontID },
-		m_buttonFontSize{ buttonFontSize },
-		m_title{ title },
-		m_titleColor{ titleColor },
-		m_titleFontID{ titleFontID },
-		m_titleFontSize{ titleFontSize },
+	Menu::Menu(const std::vector<std::string>& buttonNames, const TextStyle& buttonTextStyle,
+		const std::string& title, const TextStyle& titleTextStyle,
+		const Color& buttonColor, const Color& buttonHighlightColor, const Color& buttonBorderColor, const Color& backgroundColor)
+	: m_buttonNames{ buttonNames },
+		m_buttonTextStyle{ buttonTextStyle },
+		m_titleText{ title },
+		m_titleStyle{ titleTextStyle },
 		m_buttonColor{ buttonColor },
 		m_buttonHighlightColor{ buttonHighlightColor },
-		m_buttonBorderColor{ m_buttonBorderColor },
+		m_buttonBorderColor{ buttonBorderColor },
 		m_backgroundColor{ backgroundColor }
 	{
 		Init();
@@ -77,11 +73,16 @@ namespace d2d
 			break;
 		case SDL_MOUSEMOTION:
 		case SDL_MOUSEBUTTONDOWN:
-			for(unsigned i = 0; i < m_buttonTextList.size(); ++i)
+			for(std::vector<std::string>::size_type i = 0; i < m_buttonNames.size(); ++i)
 			{
 				d2d::Rect buttonRect;
 				GetButtonRect(i, buttonRect);
-				if(buttonRect.Contains(d2d::Window::GetMousePositionAsPercentOfWindow(event.motion.x, event.motion.y)))
+				b2Vec2 mousePosition;
+				if(event.type == SDL_MOUSEMOTION)
+					mousePosition = d2d::Window::GetMousePositionAsPercentOfWindow(event.motion.x, event.motion.y);
+				else
+					mousePosition = d2d::Window::GetMousePositionAsPercentOfWindow(event.button.x, event.button.y);
+				if(buttonRect.Contains(mousePosition))
 				{
 					m_currentButton = i;
 					if(event.type == SDL_MOUSEBUTTONDOWN)
@@ -99,7 +100,7 @@ namespace d2d
 	}
 	void Menu::SelectNext()
 	{
-		if(m_currentButton < m_buttonTextList.size() - 1)
+		if(m_currentButton < m_buttonNames.size() - 1)
 			++m_currentButton;
 	}
 	void Menu::PressSelected()
@@ -112,7 +113,7 @@ namespace d2d
 			return false;
 		else
 		{
-			buttonText = m_buttonTextList[m_buttonsPressed.front()];
+			buttonText = m_buttonNames[m_buttonsPressed.front()];
 			m_buttonsPressed.pop();
 			return true;
 		}
@@ -127,11 +128,11 @@ namespace d2d
 		d2d::Window::DisableTextures();
 		d2d::Window::EnableBlending();
 		d2d::Window::SetColor(m_backgroundColor);
-		d2d::Window::DrawRect(b2Vec2_zero, resolution, true);
+		d2d::Window::DrawRect({ b2Vec2_zero, resolution }, true);
 
 		// Draw menu buttons
 		b2Vec2 titleCenter;
-		for(unsigned i = 0; i < m_buttonTextList.size(); ++i)
+		for(unsigned i = 0; i < m_buttonNames.size(); ++i)
 		{
 			// Draw button with optional highlighting
 			d2d::Rect buttonRect;
@@ -141,10 +142,10 @@ namespace d2d
 			if(i == m_currentButton)
 			{
 				d2d::Window::SetColor(m_buttonHighlightColor);
-				d2d::Window::DrawRect(buttonRect.lowerBound, buttonRect.upperBound, true);
+				d2d::Window::DrawRect(buttonRect, true);
 			}
 			d2d::Window::SetColor({ 0.5f, 0.5f, 0.5f, 0.5f });
-			d2d::Window::DrawRect(buttonRect.lowerBound, buttonRect.upperBound, false);
+			d2d::Window::DrawRect(buttonRect, false);
 
 			// Draw text
 			b2Vec2 buttonTextCenter;
@@ -152,33 +153,30 @@ namespace d2d
 			buttonTextCenter = { buttonTextCenter.x * resolution.x, buttonTextCenter.y * resolution.y };
 			d2d::Window::PushMatrix();
 			d2d::Window::Translate(buttonTextCenter);
-			d2d::Window::SetColor(m_buttonTextColor);
-			d2d::Window::DrawString(m_buttonTextList[i], d2d::Alignment::CENTERED, m_buttonFontSize * resolution.y, m_buttonFontID);
+			d2d::Window::SetColor(m_buttonTextStyle.color);
+			d2d::Window::DrawString(m_buttonNames[i], d2d::Alignment::CENTERED, m_buttonTextStyle.size * resolution.y, m_buttonTextStyle.font);
 			d2d::Window::PopMatrix();
 
+			// Save point half-way between first button text and top of screen for title drawing
 			if(i == 0)
-			{
-				// Save point half-way between first button text and top of screen for title drawing
 				titleCenter.Set( buttonTextCenter.x, (buttonTextCenter.y + resolution.y) / 2.0f );
-
-			}
 		}
 
 		// Draw title
-		d2d::Window::SetColor(m_titleColor);
 		d2d::Window::PushMatrix();
 		d2d::Window::Translate(titleCenter);
-		d2d::Window::DrawString(m_title, d2d::Alignment::CENTERED, m_titleFontSize * resolution.y, m_titleFontID);
+		d2d::Window::SetColor(m_titleStyle.color);
+		d2d::Window::DrawString(m_titleText, d2d::Alignment::CENTERED, m_titleStyle.size * resolution.y, m_titleStyle.font);
 		d2d::Window::PopMatrix();
 	}
 	void Menu::GetButtonTextCenter(unsigned button, b2Vec2& buttonTextCenter) const
 	{
-		if(m_buttonTextList.empty())
+		if(m_buttonNames.empty())
 			return;
 
-		int referenceButton{ (int)m_buttonTextList.size() / 2 };
+		int referenceButton{ (int)m_buttonNames.size() / 2 };
 		float referenceButtonY;
-		if(m_buttonTextList.size() % 2)
+		if(m_buttonNames.size() % 2)
 		{
 			// If number of buttons is odd, reference button is in the middle
 			referenceButtonY = 0.5f;

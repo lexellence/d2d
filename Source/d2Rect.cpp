@@ -34,6 +34,18 @@ namespace d2d
 	{
 		return 0.5f * (lowerBound + upperBound);
 	}
+	float Rect::GetCenterX() const
+	{
+		return 0.5f * (lowerBound.x + upperBound.x);
+	}
+	float Rect::GetCenterY() const
+	{
+		return 0.5f * (lowerBound.y + upperBound.y);
+	}
+	b2Vec2 Rect::GetPointAtPercent(const b2Vec2& percent) const
+	{
+		return lowerBound + b2Vec2{ percent.x * GetWidth(), percent.y * GetHeight() };
+	}
 	b2Vec2 Rect::GetDimensions() const
 	{
 		return (upperBound - lowerBound);
@@ -46,11 +58,13 @@ namespace d2d
 	{
 		return upperBound.y - lowerBound.y;
 	}
+	float Rect::GetWidthToHeightRatio() const
+	{
+		return GetWidth() / GetHeight();
+	}
 	float Rect::GetPerimeter() const
 	{
-		float width = upperBound.x - lowerBound.x;
-		float height = upperBound.y - lowerBound.y;
-		return 2.0f * (width + height);
+		return 2.0f * (GetWidth() + GetHeight());
 	}
 	bool Rect::CollidesWith(const Rect& otherRect) const
 	{

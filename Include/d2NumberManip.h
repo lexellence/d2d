@@ -92,16 +92,31 @@ namespace d2d
 	}
 
 	// Wrapping
-	int WrapIntInRange(int value, const Range<int>& range);
-	float WrapFloatInRange(float value, const Range<int>& range);
-	float WrapFloat(float value, float modulus);
+	int GetWrappedInt(int value, const Range<int>& range);
+	void WrapInt(int& value, const Range<int>& range);
 
-	b2Vec2 WrapVec2InRect(const b2Vec2& value, const Rect& rect);
-	b2Vec2 WrapVec2InRange(const b2Vec2& value, const b2Vec2& low, const b2Vec2& high);
-	float WrapRadians(float angle);
-	float WrapDegrees(float angleDegrees);
+	float GetWrappedFloat(float value, const Range<float>& range);
+	void WrapFloat(float& value, const Range<float>& range);
+	
+	float GetWrappedFloat(float value, float modulus);
+	void WrapFloat(float& value, float modulus);
+
+	b2Vec2 GetWrappedVector(const b2Vec2& value, const Rect& rect);
+	void WrapVector(b2Vec2& value, const Rect& rect);
+
+	b2Vec2 GetWrappedVector(const b2Vec2& value, const b2Vec2& low, const b2Vec2& high);
+	void WrapVector(b2Vec2& value, const b2Vec2& low, const b2Vec2& high);
+
+	float GetWrappedRadians(float angle);
+	void WrapRadians(float& angle);
+
+	float GetWrappedDegrees(float angleDegrees);
+	void WrapDegrees(float& angleDegrees);
 
 	// Rounding
 	int GetRoundedFloat(float value);
+	void RoundFloat(float& value);
+
 	int GetRoundedDouble(double value);
+	void RoundDouble(double& value);
 }

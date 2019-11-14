@@ -13,188 +13,499 @@
 #include "d2Resource.h"
 #include "d2Timer.h"
 #include "d2NumberManip.h"
+#include "d2StringManip.h"
+#include "d2Rect.h"
 namespace d2d
 {
-	namespace Window
+	//+--------------------------------\--------------------------------------
+	//|			 Animation	    	   |
+	//\--------------------------------/--------------------------------------
+	AnimationFrame::AnimationFrame(const d2d::TextureReference* textureRefPtr,
+		float frameTime, const d2d::Color& tintColor,
+		const b2Vec2& relativeSize, const b2Vec2& relativePosition, float relativeAngle)
+		: m_textureRefPtr{ textureRefPtr },
+		m_frameTime{ frameTime },
+		m_tintColor{ tintColor },
+		m_relativeSize{ relativeSize },
+		m_relativePosition{ relativePosition },
+		m_relativeAngle{ relativeAngle }
 	{
-		namespace
+
+	}
+	void AnimationFrame::Draw(const b2Vec2& animationSize, const d2d::Color& animationColor) const
+	{
+		if (m_textureRefPtr)
 		{
-			class TextureResource;
-			class FontResource;
-
-			WindowDef m_windowDef;
-			bool m_sdlImageInitialized{ false };
-			SDL_Window* m_windowPtr{ nullptr };
-			SDL_GLContext m_glContext;
-			ResourceManager<TextureResource> m_textureManager;
-			ResourceManager<FontResource> m_fontManager;
-			bool m_texturesEnabled;
-			bool m_blendingEnabled;
-			bool m_textureBinded;
-			unsigned int m_bindedTextureID;
-			bool m_fontBinded;
-			unsigned int m_bindedFontID;
-			int m_bindedDTXFontSize;
-			bool m_firstPresent;
-			Timer m_timer;
-			float m_fpsUpdateInterval;
-			float m_fpsUpdateAccumulator;
-			unsigned int m_frames;
-			float m_fps;
-
-			void InvertSurface(SDL_Surface& surface)
+			d2d::Window::PushMatrix();
+			d2d::Window::Translate(m_relativePosition);
+			d2d::Window::Rotate(m_relativeAngle);
+			d2d::Window::SetColor(animationColor * m_tintColor);
+			m_textureRefPtr->Draw(animationSize * m_relativeSize);
+			d2d::Window::PopMatrix();
+		}
+	}
+	float AnimationFrame::GetFrameTime() const
+	{
+		return m_frameTime;
+	}
+	/*AnimationDef::AnimationDef(const AnimationFrame& frame)
+		: m_numFrames{ 1u },
+		m_type{ AnimationType::STATIC },
+		m_firstFrame{ 0u }
+	{
+		m_frameList[0] = frame;
+	}*/
+	AnimationDef::AnimationDef(const std::vector<AnimationFrame>& frameList,
+		AnimationType type, unsigned firstFrame, bool forward)
+		: m_numFrames{ frameList.size() },
+		m_type{ type },
+		m_firstFrame{ firstFrame },
+		m_forward{ forward }
+	{
+		d2Assert(m_numFrames <= ANIMATION_MAX_FRAMES);
+		d2Assert(m_firstFrame < m_numFrames);
+		for (unsigned i = 0; i < m_numFrames; ++i)
+			m_frameList[i] = frameList[i];
+	}
+	void Animation::Init(const AnimationDef* animationDefPtr,
+		const b2Vec2& relativeSize, const b2Vec2& relativePosition, 
+		float relativeAngle, const d2d::Color& tintColor)
+	{
+		if (!animationDefPtr)
+		{
+			m_finished = true;
+			return;
+		}
+		d2Assert(animationDefPtr->m_numFrames <= ANIMATION_MAX_FRAMES);
+		d2Assert(animationDefPtr->m_firstFrame < m_numFrames);
+		for (unsigned i = 0; i < animationDefPtr->m_numFrames; ++i)
+			m_frameList[i] = animationDefPtr->m_frameList[i];
+		m_numFrames = animationDefPtr->m_numFrames;
+		m_type = animationDefPtr->m_type;
+		m_finished = false;
+		m_currentFrame = m_firstFrame = animationDefPtr->m_firstFrame;
+		m_forward = m_startForward = animationDefPtr->m_forward;
+		m_frameTimeAccumulator = 0.0f;
+		SetFlip(false, false);
+		m_relativeSize = relativeSize;
+		m_relativePosition = relativePosition;
+		m_relativeAngle = relativeAngle;
+		m_tintColor = tintColor;
+	}
+	void Animation::SetFlip(bool flipX, bool flipY)
+	{
+		m_flipX = flipX;
+		m_flipY = flipY;
+	}
+	void Animation::Update(float dt)
+	{
+		if (!IsFinished() && m_type != AnimationType::STATIC && !m_frameList.empty())
+		{
+			d2Assert(m_numFrames <= m_frameList.size());
+			d2Assert(m_currentFrame < m_numFrames);
+			m_frameTimeAccumulator += dt;
+			if (m_frameTimeAccumulator >= m_frameList[m_currentFrame].GetFrameTime())
 			{
-				int pitch = surface.pitch;
-				int height = surface.h;
-				void* imagePixels = surface.pixels;
-
-				int index;
-				void* temp_row;
-				int height_div_2;
-
-				temp_row = (void*)malloc(pitch);
-				SDL_assert_release(temp_row && "Out of memory.");
-
-				// If height is odd, no need to swap middle row
-				height_div_2 = (int)(height * .5);
-				for (index = 0; index < height_div_2; index++)
+				// Go to next frame
+				m_frameTimeAccumulator -= m_frameList[m_currentFrame].GetFrameTime();
+				bool reachedEnd{ m_forward && (m_currentFrame == m_numFrames - 1) };
+				bool reachedBeginning{ !m_forward && (m_currentFrame == 0) };
+				bool stillNeedsToChangeFrame{ true };
+				switch (m_type)
 				{
-					//uses string.h
-					memcpy((Uint8*)temp_row,
-						(Uint8*)(imagePixels)+
-						pitch * index,
-						pitch);
-					memcpy(
-						(Uint8*)(imagePixels)+
-						pitch * index,
-						(Uint8*)(imagePixels)+
-						pitch * (height - index - 1),
-						pitch);
-					memcpy(
-						(Uint8*)(imagePixels)+
-						pitch * (height - index - 1),
-						temp_row,
-						pitch);
+				case AnimationType::SINGLE_PASS:
+					if (reachedEnd || reachedBeginning)
+					{
+						m_finished = true;
+						return;
+					}
+					break;
+				case AnimationType::LOOP:
+					if (reachedEnd || reachedBeginning)
+						stillNeedsToChangeFrame = false;
+					if (reachedEnd)
+						m_currentFrame = 0;
+					else if (reachedBeginning)
+						m_currentFrame = m_numFrames - 1;
+					break;
+				case AnimationType::PENDULUM:
+				default:
+					if (reachedEnd)
+						m_forward = false;
+					else if (reachedBeginning)
+						m_forward = true;
+					break;
 				}
-				free(temp_row);
+
+				if (stillNeedsToChangeFrame)
+				{
+					// Go to next frame
+					if (m_forward)
+						++m_currentFrame;
+					else
+						--m_currentFrame;
+				}
 			}
-			void GenerateGLTexture(const std::string& filename, GLuint& texID, float& widthToHeightRatio)
+		}
+	}
+	void Animation::Draw(const b2Vec2& entitySize) const
+	{
+		if (!IsFinished() && !m_frameList.empty())
+		{
+			d2Assert(m_numFrames <= m_frameList.size());
+			d2Assert(m_currentFrame < m_numFrames);
+			d2d::Window::PushMatrix();
+			d2d::Window::Translate(m_relativePosition);
+			d2d::Window::Rotate(m_relativeAngle);
+			m_frameList[m_currentFrame].Draw(entitySize * m_relativeSize, m_tintColor);
+			d2d::Window::PopMatrix();
+		}
+	}
+	bool Animation::IsFinished() const
+	{
+		return m_finished;
+	}
+	void Animation::Restart()
+	{
+		m_finished = false;
+		m_currentFrame = m_firstFrame;
+		m_forward = m_startForward;
+		m_frameTimeAccumulator = 0.0f;
+	}
+	namespace
+	{
+		class SpriteResource;
+		class SpriteAtlasResource;
+		class FontResource;
+
+		WindowDef m_windowDef;
+		bool m_sdlImageInitialized{ false };
+		SDL_Window* m_windowPtr{ nullptr };
+		SDL_GLContext m_glContext;
+		ResourceManager<SpriteResource> m_spriteManager;
+		ResourceManager<SpriteAtlasResource> m_spriteAtlasManager;
+		ResourceManager<FontResource> m_fontManager;
+		bool m_texturesEnabled;
+		bool m_blendingEnabled;
+		bool m_textureBinded;
+		unsigned int m_boundGLTextureID;
+		bool m_fontBinded;
+		unsigned int m_boundFontID;
+		//int m_bindedDTXFontSize;
+		Timer m_timer;
+		float m_fpsUpdateInterval;
+		float m_fpsUpdateAccumulator;
+		unsigned int m_frames;
+		float m_fps;
+
+		//+----------------------\------------------------------------
+		//|	   InvertSurface	 |
+		//\----------------------/------------------------------------
+		//	Flip sprite so it complies with opengl's lower-left origin.
+		//	Called by GenerateGLTexture.
+		void InvertSurface(SDL_Surface& surface)
+		{
+			int pitch = surface.pitch;
+			int height = surface.h;
+			void* imagePixels = surface.pixels;
+
+			int index;
+			void* temp_row;
+			int height_div_2;
+
+			temp_row = (void*)malloc(pitch);
+			SDL_assert_release(temp_row && "Out of memory.");
+
+			// If height is odd, no need to swap middle row
+			height_div_2 = (int)(height * .5);
+			for (index = 0; index < height_div_2; index++)
 			{
-				// Load surface from texture file
-				SDL_Surface* surface{ IMG_Load(filename.c_str()) };
-				if (!surface)
-					throw InitException{ "SDL_image failed to load file " + filename };
-
-				if (surface->h == 0)
-					widthToHeightRatio = 1.0f;
-				else
-					widthToHeightRatio = (float)surface->w / (float)surface->h;
-
-				// Flip it so it complies with opengl's lower-left origin
-				InvertSurface(*surface);
-
-				// Does it use the alpha channel?
-				int colorMode = GL_RGB;
-				if (surface->format->BytesPerPixel == 4)
-					colorMode = GL_RGBA;
-
-				// Create the OpenGL texture
-				EnableTextures();
-				EnableBlending();
-
-				glGenTextures(1, &texID);
-				glBindTexture(GL_TEXTURE_2D, texID);
-				glTexImage2D(GL_TEXTURE_2D, 0, colorMode, surface->w, surface->h, 0,
-					colorMode, GL_UNSIGNED_BYTE, surface->pixels);
-
-				// Texture filter
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_windowDef.gl.texture2DMagFilter);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_windowDef.gl.texture2DMinFilter);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_windowDef.gl.textureWrapS);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_windowDef.gl.textureWrapT);
-				glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, m_windowDef.gl.textureEnvMode);
-
-				// We don't need the surface anymore
-				SDL_FreeSurface(surface);
+				//uses string.h
+				memcpy((Uint8*)temp_row,
+					(Uint8*)(imagePixels)+
+					pitch * index,
+					pitch);
+				memcpy(
+					(Uint8*)(imagePixels)+
+					pitch * index,
+					(Uint8*)(imagePixels)+
+					pitch * (height - index - 1),
+					pitch);
+				memcpy(
+					(Uint8*)(imagePixels)+
+					pitch * (height - index - 1),
+					temp_row,
+					pitch);
 			}
-
-			// Resources
-			class TextureResource : public Resource
-			{
-			public:
-				TextureResource(const std::string& filename)
-				{
-					GenerateGLTexture(filename, m_glTextureID, m_widthToHeightRatio);
-				}
-				~TextureResource()
-				{
-					glDeleteTextures(1, &m_glTextureID);
-				}
-				GLuint GetGLTextureID() const
-				{
-					return m_glTextureID;
-				}
-				float GetWidthToHeightRatio() const
-				{
-					return m_widthToHeightRatio;
-				}
-
-			private:
-				GLuint m_glTextureID{ 0 };
-				float m_widthToHeightRatio{ 1.0f };
-			};
-			class FontResource : public Resource
-			{
-			public:
-				static const int dtxFontSize{ 192 };
-
-			public:
-				FontResource(const std::string& filename)
-					: m_dtxFontPtr{ dtx_open_font(filename.c_str(), dtxFontSize) }
-				{
-					if (!m_dtxFontPtr)
-						throw InitException{ "Failed to open font: " + filename };
-				}
-				~FontResource()
-				{
-					if (m_dtxFontPtr)
-						dtx_close_font(m_dtxFontPtr);
-				}
-				dtx_font* GetDTXFontPtr() const
-				{
-					return m_dtxFontPtr;
-				}
-
-			private:
-				struct dtx_font* m_dtxFontPtr{};
-			};
+			free(temp_row);
 		}
 
 		//+----------------------\------------------------------------
-		//|	Resource References  |
+		//|	  GenerateGLTexture  |
 		//\----------------------/------------------------------------
-		TextureReference::TextureReference(const std::string& filename)
-			: ResourceReference(filename, m_textureManager.Load(filename))
+		//	Load sprite data from file, register it with OpenGL, and
+		//	save its ID and aspect ratio in the output parameters.
+		void GenerateGLTexture(const std::string & filename, GLuint & texID, float& widthToHeightRatio)
 		{
-			m_widthToHeightRatio = m_textureManager.GetResource(GetID()).GetWidthToHeightRatio();
-		}
-		TextureReference::~TextureReference()
-		{
-			m_textureManager.Unload(GetID());
-		}
-		float TextureReference::GetWidthToHeightRatio() const
-		{
-			return m_widthToHeightRatio;
+			// Load surface from sprite file
+			SDL_Surface* surface{ IMG_Load(filename.c_str()) };
+			if (!surface)
+				throw InitException{ "SDL_image failed to load file "s + filename };
+
+			if (surface->h == 0)
+				widthToHeightRatio = 1.0f;
+			else
+				widthToHeightRatio = (float)surface->w / (float)surface->h;
+
+			// Flip it so it complies with opengl's lower-left origin
+			InvertSurface(*surface);
+
+			// Does it use the alpha channel?
+			int colorMode = GL_RGB;
+			if (surface->format->BytesPerPixel == 4)
+				colorMode = GL_RGBA;
+
+			// Create the OpenGL sprite
+			Window::EnableTextures();
+			Window::EnableBlending();
+
+			glGenTextures(1, &texID);
+			glBindTexture(GL_TEXTURE_2D, texID);
+			glTexImage2D(GL_TEXTURE_2D, 0, colorMode, surface->w, surface->h, 0,
+				colorMode, GL_UNSIGNED_BYTE, surface->pixels);
+
+			// Sprite filter
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_windowDef.gl.texture2DMagFilter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_windowDef.gl.texture2DMinFilter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, m_windowDef.gl.textureWrapS);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_windowDef.gl.textureWrapT);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, m_windowDef.gl.textureEnvMode);
+
+			// We don't need the surface anymore
+			SDL_FreeSurface(surface);
 		}
 
-		FontReference::FontReference(const std::string& filename)
-			: ResourceReference(filename, m_fontManager.Load(filename))
-		{ }
-		FontReference::~FontReference()
+		//+----------------------\------------------------------------
+		//|		Resources		 |
+		//\----------------------/------------------------------------
+		class SpriteResource : public Resource
 		{
-			m_fontManager.Unload(GetID());
+		public:
+			// filePaths[0]: path of the image file
+			explicit SpriteResource(const std::vector<std::string>& filePaths)
+				: Resource(filePaths)
+			{
+				if (filePaths.size() < 1)
+					throw InitException{ "SpriteResource requires one filePath"s };
+
+				// Load sprite into OpenGL
+				GenerateGLTexture(filePaths[0], m_glTextureID, m_pixelWidthToHeightRatio);
+			}
+			~SpriteResource()
+			{
+				// Unload sprite from OpenGL
+				glDeleteTextures(1, &m_glTextureID);
+			}
+			GLuint GetGLTextureID() const
+			{
+				return m_glTextureID;
+			}
+			float GetPixelWidthToHeightRatio() const
+			{
+				return m_pixelWidthToHeightRatio;
+			}
+
+		private:
+			GLuint m_glTextureID;
+			float m_pixelWidthToHeightRatio;
+		};
+
+		class SpriteAtlasResource : public SpriteResource
+		{
+		public:
+			// filePaths[0]: path of the image file
+			// filePaths[1]: path of the xml file with atlas data
+			explicit SpriteAtlasResource(const std::vector<std::string>& filePaths)
+				: SpriteResource(filePaths)
+			{
+				if (filePaths.size() < 2)
+					throw InitException{ "SpriteAtlasResource requires two filePaths"s };
+
+				// Load atlas data
+				boost::property_tree::ptree data;
+				boost::property_tree::read_xml(filePaths[1], data);
+
+				int atlasWidth{ data.get<int>("TextureAtlas.<xmlattr>.width") };
+				int atlasHeight{ data.get<int>("TextureAtlas.<xmlattr>.height") };
+				SDL_assert_release(atlasWidth > 0);
+				SDL_assert_release(atlasHeight > 0);
+
+				for (auto const& spriteNode : data.get_child("TextureAtlas"))
+				{
+					if (spriteNode.first == "sprite")
+					{
+						// name
+						std::string spriteName{ spriteNode.second.get<std::string>("<xmlattr>.name") };
+						SDL_assert_release(spriteName.length() > 0);
+
+						int x{ spriteNode.second.get<int>("<xmlattr>.x") };
+						int y{ spriteNode.second.get<int>("<xmlattr>.y") };
+						SDL_assert_release(x >= 0);
+						SDL_assert_release(x < atlasWidth);
+						SDL_assert_release(y >= 0);
+						SDL_assert_release(y < atlasHeight);
+
+						int w{ spriteNode.second.get<int>("<xmlattr>.w") };
+						int h{ spriteNode.second.get<int>("<xmlattr>.h") };
+						SDL_assert_release(w > 0);
+						SDL_assert_release(w <= atlasWidth);
+						SDL_assert_release(h > 0);
+						SDL_assert_release(h <= atlasHeight);
+
+						int x2{ x + w };
+						int y2{ y + h };
+						SDL_assert_release(x2 <= atlasWidth);
+						SDL_assert_release(y2 <= atlasHeight);
+
+						b2Vec2 lowerTextureCoordinate{ (float)x / (float)atlasWidth, (float)y / (float)atlasHeight };
+						b2Vec2 upperTextureCoordinate{ (float)x2 / (float)atlasWidth, (float)y2 / (float)atlasHeight };
+						m_textureCoordinatesMap[spriteName].SetBounds(lowerTextureCoordinate, upperTextureCoordinate);
+						m_pixelWidthToHeightRatioMap[spriteName] = (float)w / (float)h;
+					}
+				}
+			}
+			const d2d::Rect & GetTextureCoordinates(const std::string & spriteName) const
+			{
+				return m_textureCoordinatesMap.at(spriteName);
+			}
+			float GetPixelWidthToHeightRatio(const std::string & spriteName) const
+			{
+				return m_pixelWidthToHeightRatioMap.at(spriteName);
+			}
+
+		private:
+			std::unordered_map<std::string, d2d::Rect> m_textureCoordinatesMap;
+			std::unordered_map<std::string, float> m_pixelWidthToHeightRatioMap;
+		};
+
+		class FontResource : public Resource
+		{
+		public:
+			static const int dtxFontSize{ 192 };
+
+		public:
+			// filePaths[0]: path of the font file
+			explicit FontResource(const std::vector<std::string>& filePaths)
+				: Resource(filePaths)
+			{
+				if (filePaths.size() < 1)
+					throw InitException{ "FontResource requires one filePath"s };
+
+				m_dtxFontPtr = dtx_open_font(filePaths[0].c_str(), dtxFontSize);
+				if (!m_dtxFontPtr)
+					throw InitException{ "Failed to open font: "s + filePaths[0] };
+			}
+			~FontResource()
+			{
+				if (m_dtxFontPtr)
+					dtx_close_font(m_dtxFontPtr);
+			}
+			dtx_font* GetDTXFontPtr() const
+			{
+				return m_dtxFontPtr;
+			}
+
+		private:
+			struct dtx_font* m_dtxFontPtr{ nullptr };
+		};
+	}
+
+	//+----------------------\------------------------------------
+	//|	 Resource References |
+	//\----------------------/------------------------------------
+	TextureAtlasReference::TextureAtlasReference(const std::string & imagePath, const std::string & atlasXMLPath)
+		: ResourceReference(m_spriteAtlasManager.Load({ imagePath, atlasXMLPath }))
+	{ }
+	TextureAtlasReference::~TextureAtlasReference()
+	{
+		m_spriteAtlasManager.Unload(GetID());
+	}
+
+	TextureReference::TextureReference(const std::string & imagePath)
+		: ResourceReference(m_spriteManager.Load({ imagePath }))
+	{
+		m_referencesAtlas = false;
+		m_textureCoordinates.SetBounds(b2Vec2_zero, { 1.0f, 1.0f });
+		m_widthToHeightRatio = m_spriteManager.GetResource(GetID()).GetPixelWidthToHeightRatio();
+	}
+	TextureReference::TextureReference(unsigned textureAtlasID, const std::string & name)
+		: ResourceReference(textureAtlasID)
+	{
+		m_referencesAtlas = true;
+		m_textureCoordinates = m_spriteAtlasManager.GetResource(GetID()).GetTextureCoordinates(name);
+		m_widthToHeightRatio = m_spriteAtlasManager.GetResource(GetID()).GetPixelWidthToHeightRatio(name);
+	}
+	TextureReference::~TextureReference()
+	{
+		if (m_referencesAtlas)
+			m_spriteAtlasManager.Unload(GetID());
+		else
+			m_spriteManager.Unload(GetID());
+	}
+	float TextureReference::GetWidthToHeightRatio() const
+	{
+		return m_widthToHeightRatio;
+	}
+	GLuint TextureReference::GetGLTextureID() const
+	{
+		if (m_referencesAtlas)
+			return m_spriteAtlasManager.GetResource(GetID()).GetGLTextureID();
+		else
+			return m_spriteManager.GetResource(GetID()).GetGLTextureID();
+	}
+	const Rect& TextureReference::GetTextureCoordinates() const
+	{
+		return m_textureCoordinates;
+	}
+	void TextureReference::Draw(const b2Vec2& size) const
+	{
+		Rect drawRect;
+		drawRect.SetCenter(b2Vec2_zero, size);
+		DrawInRect(drawRect);
+	}
+	void TextureReference::DrawInRect(const Rect& drawRect) const
+	{
+		// Bind sprite
+		GLuint glTextureID{ GetGLTextureID() };
+		if (!m_textureBinded || m_boundGLTextureID != glTextureID)
+		{
+			glBindTexture(GL_TEXTURE_2D, glTextureID);
+			m_boundGLTextureID = glTextureID;
 		}
 
+		const Rect& texCoords{ GetTextureCoordinates() };
+		glBegin(GL_QUADS);
+		glTexCoord2f(texCoords.lowerBound.x, texCoords.lowerBound.y);
+		glVertex2f(drawRect.lowerBound.x, drawRect.lowerBound.y);
+		glTexCoord2f(texCoords.upperBound.x, texCoords.lowerBound.y);
+		glVertex2f(drawRect.upperBound.x, drawRect.lowerBound.y);
+		glTexCoord2f(texCoords.upperBound.x, texCoords.upperBound.y);
+		glVertex2f(drawRect.upperBound.x, drawRect.upperBound.y);
+		glTexCoord2f(texCoords.lowerBound.x, texCoords.upperBound.y);
+		glVertex2f(drawRect.lowerBound.x, drawRect.upperBound.y);
+		glEnd();
+	}
+
+	FontReference::FontReference(const std::string & fontPath)
+		: ResourceReference(m_fontManager.Load({ fontPath }))
+	{ }
+	FontReference::~FontReference()
+	{
+		m_fontManager.Unload(GetID());
+	}
+
+	namespace Window
+	{
 		//+----------------------\------------------------------------
 		//|	Startup and shutdown |
 		//\----------------------/------------------------------------
@@ -204,14 +515,19 @@ namespace d2d
 			m_windowDef = windowDef;
 
 			// Make sure SDL video subsystem is initialized
-			if(!SDL_WasInit(SDL_INIT_VIDEO))
+			if (!SDL_WasInit(SDL_INIT_VIDEO))
 				throw InitException{ "Tried to create window before SDL was initialized." };
 
 			// Get rid of previous window, if it exists.
 			Close();
 
 			// SDL_image
-			m_sdlImageInitialized = IMG_Init(windowDef.imageExtensions) & windowDef.imageExtensions;
+			//d2LogInfo << "windowDef.imageExtensions=" << windowDef.imageExtensions;
+			int result = IMG_Init(windowDef.imageExtensions);
+			//d2LogInfo << "result=" << result;
+
+			m_sdlImageInitialized = result & windowDef.imageExtensions;
+			//d2LogInfo << "result & windowDef.imageExtensions=" << (result & windowDef.imageExtensions);
 			SDL_assert_release(m_sdlImageInitialized);
 
 			// OpenGL settings
@@ -224,22 +540,22 @@ namespace d2d
 			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, m_windowDef.colorChannelBits[3]);
 			SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, m_windowDef.doubleBuffer);
 
-			int samples{ d2d::GetClamped(m_windowDef.antiAliasingSamples, VALID_SAMPLE_RANGE) };
-			if(samples >= WINDOW_MIN_SAMPLES_TO_ENABLE_ANTI_ALIASING)
+			int samples{ d2d::GetClamped(m_windowDef.antiAliasingSamples, VALID_ANTI_ALIASING_SAMPLES) };
+			if (samples >= MIN_SAMPLES_TO_ENABLE_ANTI_ALIASING)
 			{
 				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
 			}
 			else
 				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
-			
+
 			// Create window
 			Uint32 windowFlags{ SDL_WINDOW_OPENGL };
 			int width{ m_windowDef.size.at(0) }, height{ m_windowDef.size.at(1) };
 			int x{ m_windowDef.position.at(0) }, y{ m_windowDef.position.at(1) };
-			if(m_windowDef.fullScreen)
+			if (m_windowDef.fullScreen)
 			{
-				if(width < 1 || height < 1)
+				if (width < 1 || height < 1)
 				{
 					x = y = width = height = 0;
 					windowFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -247,13 +563,13 @@ namespace d2d
 				else
 					windowFlags |= SDL_WINDOW_FULLSCREEN;
 			}
-			
+
 			m_windowPtr = SDL_CreateWindow(m_windowDef.title.c_str(), x, y, width, height, windowFlags);
-			if(!m_windowPtr)
+			if (!m_windowPtr)
 				throw InitException{ "SDL_CreateWindow failed." };
-			
+
 			// Create OpenGL context
-			if(!(m_glContext = SDL_GL_CreateContext(m_windowPtr)))
+			if (!(m_glContext = SDL_GL_CreateContext(m_windowPtr)))
 				throw InitException{ "SDL_GL_CreateContext failed." };
 
 			// Set vsync
@@ -267,17 +583,18 @@ namespace d2d
 			glLoadIdentity();
 
 			// OpenGL settings
-			glClearColor(m_windowDef.clearColor.red, m_windowDef.clearColor.green, m_windowDef.clearColor.blue, m_windowDef.clearColor.alpha);
+			//glClearColor(m_windowDef.clearColor.red, m_windowDef.clearColor.green, m_windowDef.clearColor.blue, m_windowDef.clearColor.alpha);
+			glClearColor(COLOR_ZERO.red, COLOR_ZERO.green, COLOR_ZERO.blue, COLOR_ZERO.alpha);
 			glDisable(GL_DEPTH_TEST);
 			glDisable(GL_CULL_FACE);	// Face culling discards polygons facing into the screen
 			glShadeModel(m_windowDef.gl.shadeModel);
 			glHint(GL_PERSPECTIVE_CORRECTION_HINT, m_windowDef.gl.perspectiveCorrectionMode);
 
-			if(m_windowDef.gl.pointSmoothing)
-				glEnable(GL_POINT_SMOOTH);	
+			if (m_windowDef.gl.pointSmoothing)
+				glEnable(GL_POINT_SMOOTH);
 			else
 				glDisable(GL_POINT_SMOOTH);
-			if(m_windowDef.gl.lineSmoothing)
+			if (m_windowDef.gl.lineSmoothing)
 				glEnable(GL_LINE_SMOOTH);
 			else
 				glDisable(GL_LINE_SMOOTH);
@@ -292,14 +609,14 @@ namespace d2d
 		void Close()
 		{
 			// Shutdown SDL_Image
-			if(m_sdlImageInitialized)
+			if (m_sdlImageInitialized)
 			{
 				IMG_Quit();
 				m_sdlImageInitialized = false;
 			}
 
 			// If there is a window, get rid of it
-			if(m_windowPtr)
+			if (m_windowPtr)
 			{
 				SDL_DestroyWindow(m_windowPtr);
 				SDL_ClearError();
@@ -313,7 +630,7 @@ namespace d2d
 		{
 			int width, height;
 			SDL_GL_GetDrawableSize(m_windowPtr, &width, &height);
-			if(height == 0)
+			if (height == 0)
 				height = 1;
 			return ((float)width / (float)height);
 		}
@@ -342,35 +659,43 @@ namespace d2d
 		//+-------------\---------------------------------------------
 		//|	Modifiers	|
 		//\-------------/---------------------------------------------
+		void SetClearColor(const Color& newColor)
+		{
+			glClearColor(newColor.red, newColor.green, newColor.blue, newColor.alpha);
+		}
+		/*void SetClearColor(float red, float green, float blue, float alpha)
+		{
+			glClearColor(red, green, blue, COLOR_ZERO.alpha);
+		}*/
 		void SetShowCursor(bool enabled)
 		{
 			SDL_ShowCursor(enabled);
 		}
 		void SetFPSInterval(float interval)
 		{
-			if(interval < 0.0f)
+			if (interval < 0.0f)
 				m_fpsUpdateInterval = 0.0f;
 			else
 				m_fpsUpdateInterval = interval;
 		}
-		void SetCameraRect(const Rect& rect)
+		void SetCameraRect(const Rect & rect)
 		{
 			// Setup a 2D viewport based on camera dimensions
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
 			gluOrtho2D(rect.lowerBound.x,		// left
-						rect.upperBound.x,		// right
-						rect.lowerBound.y,		// bottom
-						rect.upperBound.y);		// top
+				rect.upperBound.x,		// right
+				rect.lowerBound.y,		// bottom
+				rect.upperBound.y);		// top
 		}
-		void SetColor(const d2d::Color& newColor)
+		void SetColor(const d2d::Color & newColor)
 		{
 			glColor4f(newColor.red, newColor.green, newColor.blue, newColor.alpha);
 		}
-		void SetColor(float red, float green, float blue, float alpha)
+		/*void SetColor(float red, float green, float blue, float alpha)
 		{
 			glColor4f(red, green, blue, alpha);
-		}
+		}*/
 		void SetPointSize(float size)
 		{
 			glPointSize(size);
@@ -386,7 +711,7 @@ namespace d2d
 		}
 		void EnableTextures()
 		{
-			if(!m_texturesEnabled)
+			if (!m_texturesEnabled)
 			{
 				glEnable(GL_TEXTURE_2D);
 				m_texturesEnabled = true;
@@ -394,7 +719,7 @@ namespace d2d
 		}
 		void DisableTextures()
 		{
-			if(m_texturesEnabled)
+			if (m_texturesEnabled)
 			{
 				glDisable(GL_TEXTURE_2D);
 				m_texturesEnabled = false;
@@ -402,7 +727,7 @@ namespace d2d
 		}
 		void EnableBlending()
 		{
-			if(!m_blendingEnabled)
+			if (!m_blendingEnabled)
 			{
 				// Enable blending
 				glEnable(GL_BLEND);
@@ -412,7 +737,7 @@ namespace d2d
 		}
 		void DisableBlending()
 		{
-			if(m_blendingEnabled)
+			if (m_blendingEnabled)
 			{
 				glDisable(GL_BLEND);
 				m_blendingEnabled = false;
@@ -434,7 +759,7 @@ namespace d2d
 			++m_frames;
 			m_timer.Update();
 			m_fpsUpdateAccumulator += m_timer.Getdt();
-			if(m_fpsUpdateAccumulator > 0.0f &&
+			if (m_fpsUpdateAccumulator > 0.0f &&
 				m_fpsUpdateAccumulator >= m_fpsUpdateInterval)
 			{
 				m_fps = m_frames / m_fpsUpdateAccumulator;
@@ -443,7 +768,7 @@ namespace d2d
 			}
 
 			// Swap buffers
-			if(m_windowPtr)
+			if (m_windowPtr)
 				SDL_GL_SwapWindow(m_windowPtr);
 		}
 		void PushMatrix()
@@ -452,7 +777,7 @@ namespace d2d
 			glMatrixMode(GL_MODELVIEW);
 			glPushMatrix();
 		}
-		void Translate(const b2Vec2& position)
+		void Translate(const b2Vec2 & position)
 		{
 			// Move to the local origin
 			glTranslatef(position.x, position.y, 0.0f);
@@ -470,13 +795,13 @@ namespace d2d
 		//+-------------\---------------------------------------------
 		//|	Draw		|
 		//\-------------/---------------------------------------------
-		void DrawPoint(const b2Vec2& position)
+		void DrawPoint(const b2Vec2 & position)
 		{
 			glBegin(GL_POINTS);
 			glVertex2f(position.x, position.y);
 			glEnd();
 		}
-		void DrawCircle(const b2Vec2& center, float radius, bool fill)
+		void DrawCircle(const b2Vec2 & center, float radius, bool fill)
 		{
 			PushMatrix();
 			Translate(center);
@@ -485,9 +810,9 @@ namespace d2d
 			glBegin(fill ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
 
 			// Triangle fans need to start at the center
-			if(fill)	
+			if (fill)
 				glVertex2f(0.0f, 0.0f);
-				
+
 			// Make sure radius is positive
 			radius = abs(radius);
 
@@ -498,40 +823,40 @@ namespace d2d
 			float radiansPerVertex{ TWO_PI / (float)numVertices };
 
 			// Specify vertices
-			for(unsigned i = 0; i < numVertices; ++i)
+			for (unsigned i = 0; i < numVertices; ++i)
 			{
 				float theta{ i * radiansPerVertex };
 				glVertex2f(cosf(theta) * radius, sinf(theta) * radius);
 			}
 
 			// Only the triangle fan needs to close the loop
-			if(fill)	
+			if (fill)
 				glVertex2f(radius, 0.0f);
 			glEnd();
 			PopMatrix();
 		}
-		void DrawPolygon(const b2Vec2* vertices, unsigned vertexCount, bool fill)
+		void DrawPolygon(const b2Vec2 * vertices, unsigned vertexCount, bool fill)
 		{
-			if(!vertices || !vertexCount)
+			if (!vertices || !vertexCount)
 				return;
 
 			// Polygon for filled mode, line loop for outline mode
 			glBegin(fill ? GL_POLYGON : GL_LINE_LOOP);
-			for(unsigned i = 0; i < vertexCount; ++i)
+			for (unsigned i = 0; i < vertexCount; ++i)
 				glVertex2f(vertices[i].x, vertices[i].y);
 			glEnd();
 		}
-		void DrawRect(const b2Vec2& lowerBound, const b2Vec2& upperBound, bool fill)
+		void DrawRect(const Rect & drawRect, bool fill)
 		{
 			// Quad for filled mode, line loop for outline mode
 			glBegin(fill ? GL_QUADS : GL_LINE_LOOP);
-			glVertex2f(lowerBound.x, lowerBound.y);
-			glVertex2f(upperBound.x, lowerBound.y);
-			glVertex2f(upperBound.x, upperBound.y);
-			glVertex2f(lowerBound.x, upperBound.y);
+			glVertex2f(drawRect.lowerBound.x, drawRect.lowerBound.y);
+			glVertex2f(drawRect.upperBound.x, drawRect.lowerBound.y);
+			glVertex2f(drawRect.upperBound.x, drawRect.upperBound.y);
+			glVertex2f(drawRect.lowerBound.x, drawRect.upperBound.y);
 			glEnd();
 		}
-		void DrawLine(const b2Vec2& p1, const b2Vec2& p2)
+		void DrawLine(const b2Vec2 & p1, const b2Vec2 & p2)
 		{
 			glBegin(GL_LINES);
 			glVertex2f(p1.x, p1.y);
@@ -540,54 +865,42 @@ namespace d2d
 		}
 		void DrawLineStrip(const b2Vec2* vertices, unsigned vertexCount)
 		{
-			if(!vertices || !vertexCount)
+			if (!vertices || !vertexCount)
 				return;
 
 			glBegin(GL_LINE_STRIP);
-			for(unsigned i = 0; i < vertexCount; ++i)
+			for (unsigned i = 0; i < vertexCount; ++i)
 				glVertex2f(vertices[i].x, vertices[i].y);
 			glEnd();
 		}
-		void DrawTexture(unsigned textureID, const b2Vec2& size)
+		void DrawString(const std::string& text, Alignment alignment, float size, const FontReference& font)
 		{
-			b2Vec2 halfSize{ 0.5f * size };
-			DrawTextureInRect(textureID, { -halfSize.x, -halfSize.y }, halfSize);
-		}
-		void DrawTextureInRect(unsigned textureID, const b2Vec2& lowerBound, const b2Vec2& upperBound)
-		{
-			// Bind texture
-			if(!m_textureBinded || m_bindedTextureID != textureID)
-			{
-				glBindTexture(GL_TEXTURE_2D, m_textureManager.GetResource(textureID).GetGLTextureID());
-				m_bindedTextureID = textureID;
-			}
-
-			// Draw a textured quad
-			glBegin(GL_QUADS);
-			glTexCoord2f(0.0f, 0.0f); glVertex2f(lowerBound.x, lowerBound.y);
-			glTexCoord2f(1.0f, 0.0f); glVertex2f(upperBound.x, lowerBound.y);
-			glTexCoord2f(1.0f, 1.0f); glVertex2f(upperBound.x, upperBound.y);
-			glTexCoord2f(0.0f, 1.0f); glVertex2f(lowerBound.x, upperBound.y);
-			glEnd();
-		}
-		void DrawString(const std::string &text, Alignment alignment,
-			float fontSize, unsigned fontID)
-		{
-			if(!m_fontBinded || m_bindedFontID != fontID)
+			if (!m_fontBinded || m_boundFontID != font.GetID())
 			{
 				// Find the loaded font with matching id, and enable it.
-				const FontResource& font{ m_fontManager.GetResource(fontID) };
 				m_fontBinded = true;
-				m_bindedDTXFontSize = FontResource::dtxFontSize;
-				m_bindedFontID = fontID;
+				//m_bindedDTXFontSize = FontResource::dtxFontSize;
+				m_boundFontID = font.GetID();
 
-				dtx_use_font(font.GetDTXFontPtr(), m_bindedDTXFontSize);
+				//dtx_use_font(m_fontManager.GetResource(fontID).GetDTXFontPtr(), m_bindedDTXFontSize);
+				dtx_use_font(m_fontManager.GetResource(font.GetID()).GetDTXFontPtr(), FontResource::dtxFontSize);
 			}
-			if(m_bindedDTXFontSize < 0)
-				return;
+			//if (m_bindedDTXFontSize < 0)
+			//	return;
 
-			float scale{ fontSize / (float)m_bindedDTXFontSize };
+
+
+			// ***********************************************************************************************************
+			// TODO: THIS IS HACKED TOGETHER... MAKE A PROPER TEXT SIZING MECHANISM, OR SWITCH TO ANOTHER GL TEXT LIB
+			// ***********************************************************************************************************
+			//float scale{ fontSize / (float)m_bindedDTXFontSize };
+			//b2Vec2 resolution{ GetScreenResolution() };
+			//size *= 0.5f * (resolution.x + resolution.y);
+			float scale{ size / (float)FontResource::dtxFontSize };
 			glScalef(scale, scale, 1.0f);
+
+
+
 
 			// Alignment: dtx string alignment is left bottom of the first character of the first line,
 			//	so we have to translate to that point.
@@ -601,7 +914,7 @@ namespace d2d
 			struct dtx_box stringDimensions;
 			dtx_string_box(text.c_str(), &stringDimensions);
 			b2Vec2 translation;
-			switch(alignment)
+			switch (alignment)
 			{
 			case Alignment::LEFT_TOP:
 				translation.x = fontPadding;
@@ -641,48 +954,12 @@ namespace d2d
 				translation.y = stringDimensions.height + fontPadding - fontHeight;
 				break;
 			}
-			
+
 			// Draw string
-			PushMatrix();
-			Translate(translation);
+			Window::PushMatrix();
+			Window::Translate(translation);
 			dtx_string(text.c_str());
-			PopMatrix();
+			Window::PopMatrix();
 		}
-		/*void LoadTextureList(const std::vector<std::string>& filenames, std::vector<unsigned>& textureIDs)
-		{
-			textureIDs.clear();
-			for(auto textureFilename : filenames)
-			{
-				unsigned textureID{};
-				LoadTexture(textureFilename, textureID);
-				textureIDs.push_back(textureID);
-			}
-		}
-		void LoadFontList(const std::vector<std::string>& filenames, std::vector<unsigned>& fontIDs)
-		{
-			fontIDs.clear();
-			for(auto fontFilename : filenames)
-			{
-				unsigned fontID{};
-				LoadFont(fontFilename, fontID);
-				fontIDs.push_back(fontID);
-			}
-		}*/
-		/*void UnloadTextureList(std::vector<unsigned>& m_textureIDList)
-		{
-			for(auto textureID : m_textureIDList)
-			{
-				UnloadTexture(textureID);
-			}
-			m_textureIDList.clear();
-		}
-		void UnloadFontList(std::vector<unsigned>& m_fontIDList)
-		{
-			for(auto fontID : m_fontIDList)
-			{
-				UnloadFont(fontID);
-			}
-			m_fontIDList.clear();
-		}*/
 	}
 }

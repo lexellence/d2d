@@ -27,7 +27,7 @@ namespace d2d
 	//+-------------\---------------------------------------------
 	//|	 Wrapping   |
 	//\-------------/---------------------------------------------
-	int WrapIntInRange(int value, const Range<int>& range)
+	int GetWrappedInt(int value, const Range<int>& range)
 	{
 		int range_size = range.GetMax() - range.GetMin() + 1;
 
@@ -39,37 +39,84 @@ namespace d2d
 
 		return range.GetMin() + (value - range.GetMin()) % range_size;
 	}
-	float WrapFloatInRange(float value, const Range<float>& range)
+	void WrapInt(int& value, const Range<int>& range)
+	{
+		int range_size = range.GetMax() - range.GetMin() + 1;
+
+		if(range_size == 0)
+			value = range.GetMax();
+
+		if(value < range.GetMin())
+			value += range_size * ((range.GetMin() - value) / range_size + 1);
+
+		value = range.GetMin() + (value - range.GetMin()) % range_size;
+	}
+
+	float GetWrappedFloat(float value, const Range<float>& range)
 	{
 		float t = fmodf(value - range.GetMin(), range.GetMax() - range.GetMin());
 		return t < 0 ? t + range.GetMax() : t + range.GetMin();
 	}
-	float WrapFloat(float value, float modulus)
+	void WrapFloat(float& value, const Range<float>& range)
+	{
+		float t = fmodf(value - range.GetMin(), range.GetMax() - range.GetMin());
+		value = t < 0 ? t + range.GetMax() : t + range.GetMin();
+	}
+
+	float GetWrappedFloat(float value, float modulus)
 	{
 		value = fmodf(value, modulus);
 		if(value < 0.0f)
 			value += modulus;
 		return value;
 	}
-	b2Vec2 WrapVec2InRect(const b2Vec2& value, const Rect& rect)
+	void WrapFloat(float& value, float modulus)
+	{
+		value = fmodf(value, modulus);
+		if(value < 0.0f)
+			value += modulus;
+	}
+
+	b2Vec2 GetWrappedVector(const b2Vec2& value, const Rect& rect)
 	{
 		return
-		{ WrapFloatInRange(value.x, Range<float>{rect.lowerBound.x, rect.upperBound.x}),
-			WrapFloatInRange(value.y, Range<float>{rect.lowerBound.y, rect.upperBound.y}) };
+		{ GetWrappedFloat(value.x, Range<float>{rect.lowerBound.x, rect.upperBound.x}),
+			GetWrappedFloat(value.y, Range<float>{rect.lowerBound.y, rect.upperBound.y}) };
 	}
-	b2Vec2 WrapVec2InRange(const b2Vec2& value, const b2Vec2& low, const b2Vec2& high)
+	void WrapVector(b2Vec2& value, const Rect& rect)
+	{
+		WrapFloat(value.x, Range<float>{rect.lowerBound.x, rect.upperBound.x});
+		WrapFloat(value.y, Range<float>{rect.lowerBound.y, rect.upperBound.y});
+	}
+
+	b2Vec2 GetWrappedVector(const b2Vec2& value, const b2Vec2& low, const b2Vec2& high)
 	{
 		return
-		{ WrapFloatInRange(value.x, Range<float>{low.x, high.x}),
-			WrapFloatInRange(value.y, Range<float>{low.y, high.y}) };
+		{ GetWrappedFloat(value.x, Range<float>{low.x, high.x}),
+			GetWrappedFloat(value.y, Range<float>{low.y, high.y}) };
 	}
-	float WrapRadians(float angle)
+	void WrapVector(b2Vec2& value, const b2Vec2& low, const b2Vec2& high)
 	{
-		return WrapFloat(angle, TWO_PI);
+		WrapFloat(value.x, Range<float>{low.x, high.x});
+		WrapFloat(value.y, Range<float>{low.y, high.y});
 	}
-	float WrapDegrees(float angleDegrees)
+
+	float GetWrappedRadians(float angle)
 	{
-		return WrapFloat(angleDegrees, 360.0f);
+		return GetWrappedFloat(angle, TWO_PI);
+	}
+	void WrapRadians(float& angle)
+	{
+		WrapFloat(angle, TWO_PI);
+	}
+
+	float GetWrappedDegrees(float angleDegrees)
+	{
+		return GetWrappedFloat(angleDegrees, 360.0f);
+	}
+	void WrapDegrees(float& angleDegrees)
+	{
+		WrapFloat(angleDegrees, 360.0f);
 	}
 
 	// Rounding
@@ -77,8 +124,17 @@ namespace d2d
 	{
 		return static_cast<int>(value >= 0.0f ? (value + 0.5f) : (value - 0.5f));
 	}
+	void RoundFloat(float& value)
+	{
+		value = (float)((int)(value >= 0.0f ? (value + 0.5f) : (value - 0.5f)));
+	}
+
 	int GetRoundedDouble(double value)
 	{
 		return static_cast<int>(value >= 0.0 ? (value + 0.5) : (value - 0.5));
+	}
+	void RoundDouble(double& value)
+	{
+		value = (double)((int)(value >= 0.0 ? (value + 0.5) : (value - 0.5)));
 	}
 }

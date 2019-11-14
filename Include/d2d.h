@@ -4,7 +4,7 @@
 ** Author: David Leksen
 ** Date: 
 **
-** Header file to include d2d in your project
+** Header file to include d2d in your project (not used internally by d2d)
 **
 \**************************************************************************************/
 #pragma once
@@ -23,6 +23,7 @@
 #include "d2Timer.h"
 #include "d2Utility.h"
 #include "d2Window.h"
+#include "d2Network.h"
 
 
 

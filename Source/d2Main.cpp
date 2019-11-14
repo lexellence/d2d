@@ -17,6 +17,7 @@ namespace d2d
 	namespace
 	{
 		bool m_sdlInitialized{ false };
+		bool m_sdlNetInitialized{ false };
 		bool OpenJoystickAsGamepad(int joystickDeviceIndex)
 		{
 			if(SDL_IsGameController(joystickDeviceIndex))
@@ -66,13 +67,7 @@ namespace d2d
 
 	void Init(d2LogSeverity minSeverityToLog, const std::string& logOutputFilePath)
 	{
-		// Make sure we never exit without shutting down
-		static bool atExitSet{ false };
-		if(!atExitSet)
-		{
-			atexit(d2d::Shutdown);
-			atExitSet = true;
-		}
+		atexit(d2d::Shutdown);
 
 		// Start logging
 		boost::log::register_simple_formatter_factory<d2LogSeverity, char>("Severity");
@@ -92,11 +87,19 @@ namespace d2d
 		{
 			std::string message{ "SDL_Init failed: " };
 			message += SDL_GetError();
-			d2LogFatal << message;
 			throw InitException{ message };
 		}
 		m_sdlInitialized = true;
 
+		// SDL_Net
+		if(SDLNet_Init() != 0)
+		{
+			std::string message{ "SDLNet_Init failed: " };
+			message += SDLNet_GetError();
+			throw InitException{ message };
+		}
+		m_sdlNetInitialized = true;
+		
 		// Set callback/handler funtions
 		SDL_SetAssertionHandler(d2AssertionHandler, nullptr);
 		SDL_SetEventFilter(d2EventFilter, nullptr);
@@ -137,6 +140,11 @@ namespace d2d
 	void Shutdown()
 	{
 		d2d::Window::Close();
+		if(m_sdlNetInitialized)
+		{
+			SDLNet_Quit();
+			m_sdlNetInitialized = false;
+		}
 		if(m_sdlInitialized)
 		{
 			SDL_Quit();

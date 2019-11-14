@@ -38,7 +38,7 @@ namespace d2d
 		explicit Exception(const std::string& message)
 			: std::runtime_error{ message }
 		{
-			d2LogFatal << message;
+			d2LogError << message;
 		}
 	};
 	struct InitException : public Exception
@@ -53,7 +53,10 @@ namespace d2d
 	{
 		using Exception::Exception;
 	};
-
+	struct NetworkException : public Exception
+	{
+		using Exception::Exception;
+	};
 
 	// Physics
 	float CalculateKineticEnergy(b2Body* bodyPtr);

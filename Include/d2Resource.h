@@ -14,26 +14,30 @@ namespace d2d
 	class Resource
 	{
 	public:
+		Resource() = delete;
+		explicit Resource(const std::vector<std::string>& filePaths);
+		virtual ~Resource() = 0;
 		void IncrementReferenceCount();
 		void DecrementReferenceCount();
 		unsigned long GetReferenceCount() const;
+		const std::vector<std::string>& GetFilePaths() const;
 
 	private:
 		unsigned long m_referenceCount{ 1 };
+		std::vector<std::string> m_filePaths;
 	};
 
+	using ResourceID = unsigned long;
 	class ResourceReference
 	{
 	public:
 		ResourceReference() = delete;
-		ResourceReference(const std::string& filename, unsigned id);
+		explicit ResourceReference(ResourceID id);
 		virtual ~ResourceReference() = 0;
-		unsigned GetID() const;
-		const std::string& GetFilename() const;
+		ResourceID GetID() const;
 
 	private:
-		std::string m_filename;
-		unsigned m_id;
+		ResourceID m_id;
 	};
 
 	template<class ResourceType>
@@ -49,10 +53,13 @@ namespace d2d
 			}
 		}
 
-		unsigned Load(const std::string& filename)
+		unsigned Load(const std::vector<std::string>& filePaths)
 		{
-			auto indexIterator{ m_filenameIndexMap.find(filename) };
-			unsigned handle;
+			if (filePaths.size() < 1)
+				throw InitException{ "ResourceManager::Load requires one filePath"s };
+
+			auto indexIterator{ m_filenameIndexMap.find(filePaths[0]) };
+			unsigned id;
 
 			// If no index with the same filename
 			if(indexIterator == m_filenameIndexMap.end())
@@ -61,50 +68,50 @@ namespace d2d
 				if(m_availableIndexList.empty())
 				{
 					// Load and add as a new element
-					m_resourcePtrList.push_back(new ResourceType(filename));
-					handle = m_resourcePtrList.size() - 1;
+					m_resourcePtrList.push_back(new ResourceType(filePaths));
+					id = m_resourcePtrList.size() - 1;
 				}
 				else
 				{
 					// Load and put into an unused slot.
-					handle = m_availableIndexList.top();
+					id = m_availableIndexList.top();
 					m_availableIndexList.pop();
-					m_resourcePtrList.at(handle) = new ResourceType(filename);
+					m_resourcePtrList.at(id) = new ResourceType(filePaths);
 				}
 				// Map the resource's index to its filename and bail.
-				m_filenameIndexMap[filename] = handle;
+				m_filenameIndexMap[filePaths[0]] = id;
 			}
 			else
 			{
 				// We found an index with the same filename, so increment the   
 				// reference count for the resource that already exists at that index.
-				handle = indexIterator->second;
-				SDL_assert(m_resourcePtrList[handle] != nullptr);
-				m_resourcePtrList.at(handle)->IncrementReferenceCount();
+				id = indexIterator->second;
+				SDL_assert(m_resourcePtrList[id] != nullptr);
+				m_resourcePtrList.at(id)->IncrementReferenceCount();
 			}
-			return handle;
+			return id;
 		}
-		void Unload(unsigned handle)
+		void Unload(unsigned id)
 		{
-			if(handle >= m_resourcePtrList.size() || m_resourcePtrList[handle] == nullptr)
+			if(id >= m_resourcePtrList.size() || m_resourcePtrList[id] == nullptr)
 			{
-				d2LogWarning << "Tried to unload resource with unrecognized handle";
+				d2LogWarning << "Tried to unload resource with unrecognized id";
 				return;
 			}
 
-			m_resourcePtrList[handle]->DecrementReferenceCount();
-			if(m_resourcePtrList[handle]->GetReferenceCount() == 0)
+			m_resourcePtrList[id]->DecrementReferenceCount();
+			if(m_resourcePtrList[id]->GetReferenceCount() == 0)
 			{
 				// Free resource
-				delete m_resourcePtrList[handle];
-				m_resourcePtrList[handle] = nullptr;
-				m_availableIndexList.push(handle);
+				delete m_resourcePtrList[id];
+				m_resourcePtrList[id] = nullptr;
+				m_availableIndexList.push(id);
 
 				// Remove filename to index map entry
 				auto indexMapIterator = m_filenameIndexMap.begin();
 				while(indexMapIterator != m_filenameIndexMap.end())
 				{
-					if((*indexMapIterator).second == handle)
+					if((*indexMapIterator).second == id)
 					{
 						indexMapIterator = m_filenameIndexMap.erase(indexMapIterator);
 					}
@@ -115,11 +122,11 @@ namespace d2d
 				}
 			}
 		}
-		// Throws exception if handle not found
-		const ResourceType& GetResource(unsigned handle) const
+		// Throws exception if id not found
+		const ResourceType& GetResource(unsigned id) const
 		{
-			SDL_assert_release(handle < m_resourcePtrList.size());
-			return *m_resourcePtrList[handle];
+			SDL_assert_release(id < m_resourcePtrList.size());
+			return *m_resourcePtrList[id];
 		}
 
 	private:
