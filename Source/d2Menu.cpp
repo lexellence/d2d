@@ -127,8 +127,8 @@ namespace d2d
 		// Draw background
 		d2d::Window::DisableTextures();
 		d2d::Window::EnableBlending();
-		d2d::Window::SetColor(m_backgroundColor);
-		d2d::Window::DrawRect({ b2Vec2_zero, resolution }, true);
+		//d2d::Window::SetColor(m_backgroundColor);
+		//d2d::Window::DrawRect({ b2Vec2_zero, resolution }, true);
 
 		// Draw menu buttons
 		b2Vec2 titleCenter;

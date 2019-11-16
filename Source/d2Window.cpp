@@ -515,66 +515,70 @@ namespace d2d
 			m_windowDef = windowDef;
 
 			// Make sure SDL video subsystem is initialized
-			if (!SDL_WasInit(SDL_INIT_VIDEO))
-				throw InitException{ "Tried to create window before SDL was initialized." };
+			if(!SDL_WasInit(SDL_INIT_VIDEO))
+				throw InitException{ "Failed to initialize window: SDL video system not yet initialized" };
 
 			// Get rid of previous window, if it exists.
 			Close();
 
 			// SDL_image
-			//d2LogInfo << "windowDef.imageExtensions=" << windowDef.imageExtensions;
-			int result = IMG_Init(windowDef.imageExtensions);
-			//d2LogInfo << "result=" << result;
-
-			m_sdlImageInitialized = result & windowDef.imageExtensions;
-			//d2LogInfo << "result & windowDef.imageExtensions=" << (result & windowDef.imageExtensions);
-			SDL_assert_release(m_sdlImageInitialized);
+			{
+				IMG_SetError("");
+				int imageExtensionsLoaded = IMG_Init(windowDef.imageExtensions);
+				if((imageExtensionsLoaded & windowDef.imageExtensions) != windowDef.imageExtensions)
+					throw InitException{ std::string{"Failed to load all requested imageExtensions: "} +IMG_GetError() };
+				m_sdlImageInitialized = true;
+			}
 
 			// OpenGL settings
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, m_windowDef.gl.profileMask);
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_windowDef.gl.versionMajor);
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_windowDef.gl.versionMinor);
-			SDL_GL_SetAttribute(SDL_GL_RED_SIZE, m_windowDef.colorChannelBits[0]);
-			SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, m_windowDef.colorChannelBits[1]);
-			SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, m_windowDef.colorChannelBits[2]);
-			SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, m_windowDef.colorChannelBits[3]);
-			SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, m_windowDef.doubleBuffer);
-
-			int samples{ d2d::GetClamped(m_windowDef.antiAliasingSamples, VALID_ANTI_ALIASING_SAMPLES) };
-			if (samples >= MIN_SAMPLES_TO_ENABLE_ANTI_ALIASING)
 			{
-				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
-			}
-			else
-				SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, m_windowDef.gl.profileMask);
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_windowDef.gl.versionMajor);
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_windowDef.gl.versionMinor);
+				SDL_GL_SetAttribute(SDL_GL_RED_SIZE, m_windowDef.colorChannelBits[0]);
+				SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, m_windowDef.colorChannelBits[1]);
+				SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, m_windowDef.colorChannelBits[2]);
+				SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, m_windowDef.colorChannelBits[3]);
+				SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, m_windowDef.doubleBuffer);
 
-			// Create window
-			Uint32 windowFlags{ SDL_WINDOW_OPENGL };
-			int width{ m_windowDef.size.at(0) }, height{ m_windowDef.size.at(1) };
-			int x{ m_windowDef.position.at(0) }, y{ m_windowDef.position.at(1) };
-			if (m_windowDef.fullScreen)
-			{
-				if (width < 1 || height < 1)
+				int samples = d2d::GetClamped(m_windowDef.antiAliasingSamples, VALID_ANTI_ALIASING_SAMPLES);
+				if(samples >= MIN_SAMPLES_TO_ENABLE_ANTI_ALIASING)
 				{
-					x = y = width = height = 0;
-					windowFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+					SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+					SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, samples);
 				}
 				else
-					windowFlags |= SDL_WINDOW_FULLSCREEN;
+					SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 			}
 
-			m_windowPtr = SDL_CreateWindow(m_windowDef.title.c_str(), x, y, width, height, windowFlags);
-			if (!m_windowPtr)
-				throw InitException{ "SDL_CreateWindow failed." };
+			// Create window
+			{
+				Uint32 windowFlags{ SDL_WINDOW_OPENGL };
+				int width = m_windowDef.size.at(0);
+				int height = m_windowDef.size.at(1);
+				int x = m_windowDef.position.at(0);
+				int y = m_windowDef.position.at(1);
+				if(m_windowDef.fullScreen)
+					windowFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+				else
+					windowFlags |= SDL_WINDOW_RESIZABLE;
+
+				SDL_SetError("");
+				m_windowPtr = SDL_CreateWindow(m_windowDef.title.c_str(), x, y, width, height, windowFlags);
+				if(!m_windowPtr)
+					throw InitException{ std::string{"SDL_CreateWindow failed: "} +SDL_GetError() };
+			}
 
 			// Create OpenGL context
-			if (!(m_glContext = SDL_GL_CreateContext(m_windowPtr)))
-				throw InitException{ "SDL_GL_CreateContext failed." };
+			SDL_SetError("");
+			if(!(m_glContext = SDL_GL_CreateContext(m_windowPtr)))
+				throw InitException{ std::string{"SDL_GL_CreateContext failed: "} +SDL_GetError() };
 
 			// Set vsync
-			//SDL_GL_SetSwapInterval(m_windowDef.vsync ? -1 : 0); // -1 allows late swaps
-			SDL_GL_SetSwapInterval(m_windowDef.vsync ? 1 : 0);
+			if(m_windowDef.vsync)
+				SDL_GL_SetSwapInterval(m_windowDef.vsyncAllowLateSwaps ? -1 : 1);
+			else
+				SDL_GL_SetSwapInterval(0);
 
 			EnableTextures();
 			EnableBlending();
@@ -583,18 +587,17 @@ namespace d2d
 			glLoadIdentity();
 
 			// OpenGL settings
-			//glClearColor(m_windowDef.clearColor.red, m_windowDef.clearColor.green, m_windowDef.clearColor.blue, m_windowDef.clearColor.alpha);
 			glClearColor(COLOR_ZERO.red, COLOR_ZERO.green, COLOR_ZERO.blue, COLOR_ZERO.alpha);
 			glDisable(GL_DEPTH_TEST);
 			glDisable(GL_CULL_FACE);	// Face culling discards polygons facing into the screen
 			glShadeModel(m_windowDef.gl.shadeModel);
 			glHint(GL_PERSPECTIVE_CORRECTION_HINT, m_windowDef.gl.perspectiveCorrectionMode);
 
-			if (m_windowDef.gl.pointSmoothing)
+			if(m_windowDef.gl.pointSmoothing)
 				glEnable(GL_POINT_SMOOTH);
 			else
 				glDisable(GL_POINT_SMOOTH);
-			if (m_windowDef.gl.lineSmoothing)
+			if(m_windowDef.gl.lineSmoothing)
 				glEnable(GL_LINE_SMOOTH);
 			else
 				glDisable(GL_LINE_SMOOTH);
@@ -663,10 +666,6 @@ namespace d2d
 		{
 			glClearColor(newColor.red, newColor.green, newColor.blue, newColor.alpha);
 		}
-		/*void SetClearColor(float red, float green, float blue, float alpha)
-		{
-			glClearColor(red, green, blue, COLOR_ZERO.alpha);
-		}*/
 		void SetShowCursor(bool enabled)
 		{
 			SDL_ShowCursor(enabled);
@@ -692,10 +691,6 @@ namespace d2d
 		{
 			glColor4f(newColor.red, newColor.green, newColor.blue, newColor.alpha);
 		}
-		/*void SetColor(float red, float green, float blue, float alpha)
-		{
-			glColor4f(red, green, blue, alpha);
-		}*/
 		void SetPointSize(float size)
 		{
 			glPointSize(size);

@@ -179,11 +179,11 @@ namespace d2d
 		std::array<int, 2> position;
 		std::array<int, 2> size;
 		bool vsync;
+		bool vsyncAllowLateSwaps;
 		bool doubleBuffer;
 		int antiAliasingSamples;
 		float fpsUpdateDelay;
 		std::array<int, 4> colorChannelBits;
-		//Color clearColor;
 		int imageExtensions;
 		OpenGLSettings gl;
 	};
@@ -216,14 +216,12 @@ namespace d2d
 
 		// Modifiers
 		void SetClearColor(const Color& newColor);
-		//void SetClearColor(float red, float green, float blue, float alpha);
 		void SetShowCursor(bool enabled);
 		void SetFPSInterval(float interval);
 		void SetCameraRect(const Rect& rect);
 		void SetPointSize(float size);
 		void SetLineWidth(float width);
 		void SetColor(const Color& newColor);
-		//void SetColor(float red, float green, float blue, float alpha);
 		void EnableTextures();
 		void DisableTextures();
 		void EnableBlending();
