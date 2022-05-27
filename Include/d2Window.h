@@ -87,7 +87,7 @@ namespace d2d
 	{
 	public:
 		AnimationDef() = delete;
-		//AnimationDef(const AnimationFrame& frame);
+		AnimationDef(const AnimationFrame& frame);
 		AnimationDef(const std::vector<AnimationFrame>& frameList,
 			AnimationType type = AnimationType::STATIC,
 			unsigned firstFrame = 0u, bool forward = true);

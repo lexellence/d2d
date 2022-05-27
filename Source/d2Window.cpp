@@ -48,13 +48,13 @@ namespace d2d
 	{
 		return m_frameTime;
 	}
-	/*AnimationDef::AnimationDef(const AnimationFrame& frame)
+	AnimationDef::AnimationDef(const AnimationFrame& frame)
 		: m_numFrames{ 1u },
 		m_type{ AnimationType::STATIC },
 		m_firstFrame{ 0u }
 	{
 		m_frameList[0] = frame;
-	}*/
+	}
 	AnimationDef::AnimationDef(const std::vector<AnimationFrame>& frameList,
 		AnimationType type, unsigned firstFrame, bool forward)
 		: m_numFrames{ frameList.size() },
