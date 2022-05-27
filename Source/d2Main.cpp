@@ -129,7 +129,7 @@ namespace d2d
 				++gamepadsFailedToMap;
 		}
 		
-		std::string gamepadsMessage{ ToString(gamepadsMapped) + " gamepads mapped" };
+		std::string gamepadsMessage{ ToString(gamepadsMapped) + " gamepads mapped. " };
 		if(gamepadsFailedToMap > 0)
 			gamepadsMessage += ", " + ToString(gamepadsFailedToMap) + " gamepads failed to map";
 		d2LogInfo << gamepadsMessage;

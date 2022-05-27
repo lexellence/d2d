@@ -198,7 +198,8 @@ namespace d2d
 	ServerTcpSocket::ServerTcpSocket(const IpAddress& ip)
 	{
 		TcpSocket::TcpSocket();
-		m_socket = SDLNet_TCP_Open(&ip.GetSDL_IPaddress());
+		IPaddress SDL_IPaddress = ip.GetSDL_IPaddress();
+		m_socket = SDLNet_TCP_Open(&SDL_IPaddress);
 		if(!m_socket)
 		{
 			SDLNet_FreeSocketSet(m_socketSet);
@@ -214,7 +215,8 @@ namespace d2d
 		else 
 		{
 			TcpSocket::TcpSocket();
-			m_socket = SDLNet_TCP_Open(&iplistener.GetSDL_IPaddress());
+			IPaddress SDL_IPaddress = iplistener.GetSDL_IPaddress();
+			m_socket = SDLNet_TCP_Open(&SDL_IPaddress);
 			if(!m_socket) 
 			{
 				SDLNet_FreeSocketSet(m_socketSet);
@@ -259,7 +261,8 @@ namespace d2d
 	void ClientTcpSocket::ConnectToRemoteHost(const IpAddress& remoteIp)
 	{
 		TCPsocket clientSdl_TCPsocket;
-		clientSdl_TCPsocket = SDLNet_TCP_Open(&remoteIp.GetSDL_IPaddress());
+		IPaddress SDL_IPaddress = remoteIp.GetSDL_IPaddress();
+		clientSdl_TCPsocket = SDLNet_TCP_Open(&SDL_IPaddress);
 		if(clientSdl_TCPsocket)
 			Set(clientSdl_TCPsocket);
 		else

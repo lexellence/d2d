@@ -57,7 +57,7 @@ namespace d2d
 	}
 	AnimationDef::AnimationDef(const std::vector<AnimationFrame>& frameList,
 		AnimationType type, unsigned firstFrame, bool forward)
-		: m_numFrames{ frameList.size() },
+		: m_numFrames{ (unsigned)frameList.size() },
 		m_type{ type },
 		m_firstFrame{ firstFrame },
 		m_forward{ forward }
@@ -77,7 +77,7 @@ namespace d2d
 			return;
 		}
 		d2Assert(animationDefPtr->m_numFrames <= ANIMATION_MAX_FRAMES);
-		d2Assert(animationDefPtr->m_firstFrame < m_numFrames);
+		d2Assert(animationDefPtr->m_firstFrame < animationDefPtr->m_numFrames);
 		for (unsigned i = 0; i < animationDefPtr->m_numFrames; ++i)
 			m_frameList[i] = animationDefPtr->m_frameList[i];
 		m_numFrames = animationDefPtr->m_numFrames;
@@ -165,12 +165,19 @@ namespace d2d
 	{
 		return m_finished;
 	}
+	bool Animation::IsAnimated() const
+	{
+		return m_type != AnimationType::STATIC;
+	}
 	void Animation::Restart()
 	{
 		m_finished = false;
 		m_currentFrame = m_firstFrame;
 		m_forward = m_startForward;
 		m_frameTimeAccumulator = 0.0f;
+	}
+	void Animation::SetTint(const d2d::Color& newTintColor) {
+		m_tintColor = newTintColor;
 	}
 	namespace
 	{
@@ -314,7 +321,6 @@ namespace d2d
 			{
 				return m_pixelWidthToHeightRatio;
 			}
-
 		private:
 			GLuint m_glTextureID;
 			float m_pixelWidthToHeightRatio;
@@ -955,6 +961,39 @@ namespace d2d
 			Window::Translate(translation);
 			dtx_string(text.c_str());
 			Window::PopMatrix();
+		}
+		void DrawSprite(ResourceID spriteID, const b2Vec2& size)
+		{
+			Rect drawRect;
+			drawRect.SetCenter(b2Vec2_zero, size);
+			DrawSpriteInRect(spriteID, drawRect);
+		}
+		void DrawSpriteInRect(ResourceID spriteID, const Rect& drawRect)
+		{
+			// Get resource
+			const d2d::SpriteResource& spriteResource = m_spriteManager.GetResource(spriteID);
+
+			// Bind sprite
+			GLuint glTextureID{ spriteResource.GetGLTextureID()};
+			
+			if (!m_textureBinded || m_boundGLTextureID != glTextureID)
+			{
+				glBindTexture(GL_TEXTURE_2D, glTextureID);
+				m_boundGLTextureID = glTextureID;
+			}
+
+			//const Rect& texCoords{ spriteResource.GetTextureCoordinates() };
+			const Rect& texCoords{ b2Vec2_zero, b2Vec2{1.0f, 1.0f} };
+			glBegin(GL_QUADS);
+			glTexCoord2f(texCoords.lowerBound.x, texCoords.lowerBound.y);
+			glVertex2f(drawRect.lowerBound.x, drawRect.lowerBound.y);
+			glTexCoord2f(texCoords.upperBound.x, texCoords.lowerBound.y);
+			glVertex2f(drawRect.upperBound.x, drawRect.lowerBound.y);
+			glTexCoord2f(texCoords.upperBound.x, texCoords.upperBound.y);
+			glVertex2f(drawRect.upperBound.x, drawRect.upperBound.y);
+			glTexCoord2f(texCoords.lowerBound.x, texCoords.upperBound.y);
+			glVertex2f(drawRect.lowerBound.x, drawRect.upperBound.y);
+			glEnd();
 		}
 	}
 }

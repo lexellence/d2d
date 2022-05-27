@@ -111,7 +111,9 @@ namespace d2d
 		void Update(float dt);
 		void Draw(const b2Vec2& entitySize) const;
 		bool IsFinished() const;
+		bool IsAnimated() const;
 		void Restart();
+		void SetTint(const d2d::Color& tint = d2d::WHITE_OPAQUE);
 
 	private:
 		std::array<AnimationFrame, ANIMATION_MAX_FRAMES> m_frameList;
@@ -184,6 +186,7 @@ namespace d2d
 		int antiAliasingSamples;
 		float fpsUpdateDelay;
 		std::array<int, 4> colorChannelBits;
+		d2d::Color clearColor;
 		int imageExtensions;
 		OpenGLSettings gl;
 	};
@@ -243,5 +246,7 @@ namespace d2d
 		void DrawLine(const b2Vec2& p1, const b2Vec2& p2);
 		void DrawLineStrip(const b2Vec2* vertices, unsigned vertexCount);
 		void DrawString(const std::string &text, Alignment alignment, float size, const FontReference& font);
+		void DrawSprite(ResourceID spriteID, const b2Vec2& size);
+		void DrawSpriteInRect(ResourceID spriteID, const Rect& drawRect);
 	}
 }
