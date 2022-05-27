@@ -23,11 +23,11 @@ namespace d2d
 		const std::vector<std::string>& GetFilePaths() const;
 
 	private:
-		unsigned long m_referenceCount{ 1 };
+		size_t m_referenceCount{ 1 };
 		std::vector<std::string> m_filePaths;
 	};
 
-	using ResourceID = unsigned long;
+	using ResourceID = size_t;
 	class ResourceReference
 	{
 	public:
@@ -53,13 +53,13 @@ namespace d2d
 			}
 		}
 
-		unsigned Load(const std::vector<std::string>& filePaths)
+		size_t Load(const std::vector<std::string>& filePaths)
 		{
 			if (filePaths.size() < 1)
 				throw InitException{ "ResourceManager::Load requires one filePath"s };
 
 			auto indexIterator{ m_filenameIndexMap.find(filePaths[0]) };
-			unsigned id;
+			size_t id;
 
 			// If no index with the same filename
 			if(indexIterator == m_filenameIndexMap.end())

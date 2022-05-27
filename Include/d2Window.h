@@ -95,9 +95,9 @@ namespace d2d
 
 	private:
 		std::array<AnimationFrame, ANIMATION_MAX_FRAMES> m_frameList;
-		unsigned m_numFrames;
+		size_t m_numFrames;
 		AnimationType m_type;
-		unsigned m_firstFrame{ 0u };
+		size_t m_firstFrame{ 0 };
 		bool m_forward{ true };
 	};
 	class Animation
