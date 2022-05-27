@@ -106,7 +106,7 @@ namespace d2d
 		void Init(const AnimationDef* animationDefPtr, 
 			const b2Vec2& relativeSize = { 1.0f, 1.0f },
 			const b2Vec2& relativePosition = b2Vec2_zero, float relativeAngle = 0.0f,
-			const d2d::Color& tintColor = d2d::WHITE_OPAQUE);
+			const d2d::Color& tint = d2d::WHITE_OPAQUE);
 		void SetFlip(bool flipX, bool flipY);
 		void Update(float dt);
 		void Draw(const b2Vec2& entitySize) const;

@@ -8,22 +8,38 @@
 **
 \**************************************************************************************/
 #pragma once
+#include <iostream>
 
 // Logging
-using d2LogSeverity = boost::log::trivial::severity_level;
-const d2LogSeverity d2LogSeverityTrace{ boost::log::trivial::trace };
-const d2LogSeverity d2LogSeverityDebug{ boost::log::trivial::debug };
-const d2LogSeverity d2LogSeverityInfo{ boost::log::trivial::info };
-const d2LogSeverity d2LogSeverityWarning{ boost::log::trivial::warning };
-const d2LogSeverity d2LogSeverityError{ boost::log::trivial::error };
-const d2LogSeverity d2LogSeverityFatal{ boost::log::trivial::fatal };
+//using d2LogSeverity = boost::log::trivial::severity_level;
+//const d2LogSeverity d2LogSeverityTrace{ boost::log::trivial::trace };
+//const d2LogSeverity d2LogSeverityDebug{ boost::log::trivial::debug };
+//const d2LogSeverity d2LogSeverityInfo{ boost::log::trivial::info };
+//const d2LogSeverity d2LogSeverityWarning{ boost::log::trivial::warning };
+//const d2LogSeverity d2LogSeverityError{ boost::log::trivial::error };
+//const d2LogSeverity d2LogSeverityFatal{ boost::log::trivial::fatal };
 
-#define d2LogTrace		BOOST_LOG_TRIVIAL(trace)
-#define d2LogDebug		BOOST_LOG_TRIVIAL(debug)
-#define d2LogInfo		BOOST_LOG_TRIVIAL(info)
-#define d2LogWarning	BOOST_LOG_TRIVIAL(warning)
-#define d2LogError		BOOST_LOG_TRIVIAL(error)
-#define d2LogFatal		BOOST_LOG_TRIVIAL(fatal)
+using d2LogSeverity = unsigned;
+const d2LogSeverity d2LogSeverityTrace{ 0 };
+const d2LogSeverity d2LogSeverityDebug{ 1 };
+const d2LogSeverity d2LogSeverityInfo{ 2 };
+const d2LogSeverity d2LogSeverityWarning{ 3 };
+const d2LogSeverity d2LogSeverityError{ 4 };
+const d2LogSeverity d2LogSeverityFatal{ 5 };
+
+//#define d2LogTrace		BOOST_LOG_TRIVIAL(trace)
+//#define d2LogDebug		BOOST_LOG_TRIVIAL(debug)
+//#define d2LogInfo		BOOST_LOG_TRIVIAL(info)
+//#define d2LogWarning	BOOST_LOG_TRIVIAL(warning)
+//#define d2LogError		BOOST_LOG_TRIVIAL(error)
+//#define d2LogFatal		BOOST_LOG_TRIVIAL(fatal)
+
+#define d2LogTrace		std::cout
+#define d2LogDebug		std::cout
+#define d2LogInfo		std::cout
+#define d2LogWarning	std::cout
+#define d2LogError		std::cout
+#define d2LogFatal		std::cout
 
 // Physics operators
 const b2Vec2 operator*(b2Vec2 v1, const b2Vec2& v2);
