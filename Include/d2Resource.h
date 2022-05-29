@@ -91,7 +91,7 @@ namespace d2d
 			}
 			return id;
 		}
-		void Unload(unsigned id)
+		void Unload(size_t id)
 		{
 			if(id >= m_resourcePtrList.size() || m_resourcePtrList[id] == nullptr)
 			{

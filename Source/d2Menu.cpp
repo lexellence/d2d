@@ -73,7 +73,7 @@ namespace d2d
 			break;
 		case SDL_MOUSEMOTION:
 		case SDL_MOUSEBUTTONDOWN:
-			for(std::vector<std::string>::size_type i = 0; i < m_buttonNames.size(); ++i)
+			for(size_t i = 0u; i < m_buttonNames.size(); ++i)
 			{
 				d2d::Rect buttonRect;
 				GetButtonRect(i, buttonRect);
