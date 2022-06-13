@@ -90,7 +90,7 @@ namespace d2d
 		AnimationDef(const AnimationFrame& frame);
 		AnimationDef(const std::vector<AnimationFrame>& frameList,
 			AnimationType type = AnimationType::STATIC,
-			unsigned firstFrame = 0u, bool forward = true);
+			unsigned firstFrame = 0u, bool startForward = true);
 		friend class Animation;
 
 	private:
@@ -98,16 +98,17 @@ namespace d2d
 		size_t m_numFrames;
 		AnimationType m_type;
 		size_t m_firstFrame{ 0 };
-		bool m_forward{ true };
+		bool m_startForward{ true };
 	};
 	class Animation
 	{
 	public:
-		void Init(const AnimationDef* animationDefPtr, 
+		void Init(const AnimationDef& animationDef, 
 			const b2Vec2& relativeSize = { 1.0f, 1.0f },
 			const b2Vec2& relativePosition = b2Vec2_zero, float relativeAngle = 0.0f,
 			const d2d::Color& tint = d2d::WHITE_OPAQUE);
-		void SetFlip(bool flipX, bool flipY);
+		void FlipX();
+		void FlipY();
 		void Update(float dt);
 		void Draw(const b2Vec2& entitySize) const;
 		bool IsFinished() const;
@@ -116,14 +117,10 @@ namespace d2d
 		void SetTint(const d2d::Color& tint = d2d::WHITE_OPAQUE);
 
 	private:
-		std::array<AnimationFrame, ANIMATION_MAX_FRAMES> m_frameList;
-		unsigned m_numFrames;
-		AnimationType m_type;
-		bool m_finished;
+		AnimationDef m_def;
+		bool m_enabled;
 		unsigned m_currentFrame;
-		unsigned m_firstFrame;
 		bool m_forward;
-		bool m_startForward;
 		float m_frameTimeAccumulator;
 		bool m_flipX;
 		bool m_flipY;

@@ -56,46 +56,43 @@ namespace d2d
 		m_frameList[0] = frame;
 	}
 	AnimationDef::AnimationDef(const std::vector<AnimationFrame>& frameList,
-		AnimationType type, unsigned firstFrame, bool forward)
+		AnimationType type, unsigned firstFrame, bool startForward)
 		: m_numFrames{ (unsigned)frameList.size() },
 		m_type{ type },
 		m_firstFrame{ firstFrame },
-		m_forward{ forward }
+		m_startForward{ startForward }
 	{
 		d2Assert(m_numFrames <= ANIMATION_MAX_FRAMES);
 		d2Assert(m_firstFrame < m_numFrames);
 		for (unsigned i = 0; i < m_numFrames; ++i)
 			m_frameList[i] = frameList[i];
 	}
-	void Animation::Init(const AnimationDef* animationDefPtr,
+	void Animation::Init(const AnimationDef& animationDef,
 		const b2Vec2& relativeSize, const b2Vec2& relativePosition, 
 		float relativeAngle, const d2d::Color& tintColor)
 	{
-		if (!animationDefPtr)
-		{
-			m_finished = true;
-			return;
-		}
-		d2Assert(animationDefPtr->m_numFrames <= ANIMATION_MAX_FRAMES);
-		d2Assert(animationDefPtr->m_firstFrame < animationDefPtr->m_numFrames);
-		for (unsigned i = 0; i < animationDefPtr->m_numFrames; ++i)
-			m_frameList[i] = animationDefPtr->m_frameList[i];
-		m_numFrames = animationDefPtr->m_numFrames;
-		m_type = animationDefPtr->m_type;
-		m_finished = false;
-		m_currentFrame = m_firstFrame = animationDefPtr->m_firstFrame;
-		m_forward = m_startForward = animationDefPtr->m_forward;
+		d2Assert(animationDef->m_numFrames <= ANIMATION_MAX_FRAMES);
+		d2Assert(animationDef->m_firstFrame < animationDef->m_numFrames);
+		m_def = animationDef;
+
+		m_enabled = true;
+		m_currentFrame = m_def.m_firstFrame;
+		m_forward = m_def.m_startForward;
 		m_frameTimeAccumulator = 0.0f;
-		SetFlip(false, false);
+		m_flipX = false;
+		m_flipY = false;
 		m_relativeSize = relativeSize;
 		m_relativePosition = relativePosition;
 		m_relativeAngle = relativeAngle;
 		m_tintColor = tintColor;
 	}
-	void Animation::SetFlip(bool flipX, bool flipY)
+	void Animation::FlipX()
 	{
-		m_flipX = flipX;
-		m_flipY = flipY;
+		m_flipX = !m_flipX;
+	}
+	void Animation::FlipY()
+	{
+		m_flipY = !m_flipY;
 	}
 	void Animation::Update(float dt)
 	{
@@ -116,7 +113,7 @@ namespace d2d
 				case AnimationType::SINGLE_PASS:
 					if (reachedEnd || reachedBeginning)
 					{
-						m_finished = true;
+						m_enabled = true;
 						return;
 					}
 					break;
@@ -163,7 +160,7 @@ namespace d2d
 	}
 	bool Animation::IsFinished() const
 	{
-		return m_finished;
+		return m_enabled;
 	}
 	bool Animation::IsAnimated() const
 	{
@@ -171,9 +168,9 @@ namespace d2d
 	}
 	void Animation::Restart()
 	{
-		m_finished = false;
-		m_currentFrame = m_firstFrame;
-		m_forward = m_startForward;
+		m_enabled = true;
+		m_currentFrame = m_def.m_firstFrame;
+		m_forward = m_def.m_startForward;
 		m_frameTimeAccumulator = 0.0f;
 	}
 	void Animation::SetTint(const d2d::Color& newTintColor) {
