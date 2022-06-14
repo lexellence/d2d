@@ -63,7 +63,7 @@ namespace d2d
 	class AnimationFrame
 	{
 	public:
-		AnimationFrame(const d2d::TextureReference& texture, 
+		AnimationFrame(d2d::TextureReference* texturePtr,
 			float frameTime = 0.0f, const d2d::Color& tintColor = d2d::WHITE_OPAQUE, 
 			const b2Vec2& relativeSize = { 1.0f, 1.0f },
 			const b2Vec2& relativePosition = b2Vec2_zero, float relativeAngle = 0.0f);
@@ -71,7 +71,7 @@ namespace d2d
 		float GetFrameTime() const;
 
 	private:
-		d2d::TextureReference const* m_texturePtr{ nullptr };
+		d2d::TextureReference* m_texturePtr{ nullptr };
 		float m_frameTime;
 		d2d::Color m_tintColor;
 		b2Vec2 m_relativeSize;
@@ -102,7 +102,7 @@ namespace d2d
 	class Animation
 	{
 	public:
-		void Init(AnimationDef const* animationDefPtr,
+		void Init(const AnimationDef& animationDef,
 			const b2Vec2& relativeSize = { 1.0f, 1.0f },
 			const b2Vec2& relativePosition = b2Vec2_zero, float relativeAngle = 0.0f,
 			const d2d::Color& tint = d2d::WHITE_OPAQUE);

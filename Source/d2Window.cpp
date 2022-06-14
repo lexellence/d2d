@@ -20,10 +20,10 @@ namespace d2d
 	//+--------------------------------\--------------------------------------
 	//|			 Animation	    	   |
 	//\--------------------------------/--------------------------------------
-	AnimationFrame::AnimationFrame(const d2d::TextureReference& texture,
+	AnimationFrame::AnimationFrame(d2d::TextureReference* texturePtr,
 		float frameTime, const d2d::Color& tintColor,
 		const b2Vec2& relativeSize, const b2Vec2& relativePosition, float relativeAngle)
-		: m_texturePtr{ &texture },
+		: m_texturePtr{ texturePtr },
 		m_frameTime{ frameTime },
 		m_tintColor{ tintColor },
 		m_relativeSize{ relativeSize },
@@ -64,16 +64,11 @@ namespace d2d
 	{
 		d2Assert(m_firstFrame < m_frameList.size());
 	}
-	void Animation::Init(AnimationDef const* animationDefPtr,
+	void Animation::Init(const AnimationDef& animationDef,
 		const b2Vec2& relativeSize, const b2Vec2& relativePosition, 
 		float relativeAngle, const d2d::Color& tintColor)
 	{
-		if(!animationDefPtr) 
-		{
-			m_enabled = false;
-			return;
-		}
-		m_def = *animationDefPtr;
+		m_def = animationDef;
 		m_enabled = true;
 		m_currentFrame = m_def.m_firstFrame;
 		m_forward = m_def.m_startForward;
