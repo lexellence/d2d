@@ -197,7 +197,6 @@ namespace d2d
 	//\--------------------------------/--------------------------------------
 	ServerTcpSocket::ServerTcpSocket(const IpAddress& ip)
 	{
-		TcpSocket::TcpSocket();
 		IPaddress SDL_IPaddress = ip.GetSDL_IPaddress();
 		m_socket = SDLNet_TCP_Open(&SDL_IPaddress);
 		if(!m_socket)
@@ -214,7 +213,6 @@ namespace d2d
 			m_socket = nullptr;
 		else 
 		{
-			TcpSocket::TcpSocket();
 			IPaddress SDL_IPaddress = iplistener.GetSDL_IPaddress();
 			m_socket = SDLNet_TCP_Open(&SDL_IPaddress);
 			if(!m_socket) 
@@ -245,7 +243,6 @@ namespace d2d
 	//\--------------------------------/--------------------------------------
 	ClientTcpSocket::ClientTcpSocket() 
 	{
-		TcpSocket::TcpSocket();
 	}
 	ClientTcpSocket::ClientTcpSocket(const std::string& host, Uint16 port) 
 	{
@@ -254,7 +251,7 @@ namespace d2d
 			m_socket = nullptr;
 		else 
 		{
-			TcpSocket::TcpSocket();
+			TcpSocket();
 			ConnectToRemoteHost(remoteIp);
 		}
 	}
