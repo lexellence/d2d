@@ -2,7 +2,7 @@
 ** File: d2pch.h
 ** Project: Space
 ** Author: David Leksen
-** Date: 
+** Date:
 **
 ** Precompiled header file
 **
@@ -12,7 +12,7 @@
 //		0 Disable all
 //		1 enable SDL_assert_release
 //		2 enable SDL_assert
-//		3 enable SDL_assert_paranoid 
+//		3 enable SDL_assert_paranoid
 
 #ifdef D2_ASSERT_LEVEL
 #define SDL_ASSERT_LEVEL D2_ASSERT_LEVEL
@@ -24,21 +24,21 @@
 #define d2Assert SDL_assert
 #define d2AssertParanoid SDL_assert_paranoid
 
-#include <SDL.h>
-#include <SDL_opengl.h>
-#include <SDL_image.h>
-#include <SDL_net.h>
-#include <GL/GLU.h>
-#include <Box2D/Box2D.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_net.h>
+#include <GL/glu.h>
+#include <box2d/box2d.h>
 #include "drawtext.h"
-#include "hjson.h"
+#include "hjson/hjson.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-//#include <boost/log/core.hpp>
-//#include <boost/log/trivial.hpp>
-//#include <boost/log/utility/setup/file.hpp>
-//#include <boost/log/utility/setup/common_attributes.hpp>
+// #include <boost/log/core.hpp>
+// #include <boost/log/trivial.hpp>
+// #include <boost/log/utility/setup/file.hpp>
+// #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <vector>
@@ -53,5 +53,3 @@
 #include <climits>
 #include <string>
 using namespace std::string_literals;
-
-
