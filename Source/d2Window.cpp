@@ -13,17 +13,18 @@
 #include "d2Resource.h"
 #include "d2Timer.h"
 #include "d2NumberManip.h"
-#include "d2StringManip.h"
+//#include "d2StringManip.h"
 #include "d2Rect.h"
+#include <optional>
 namespace d2d
 {
 	//+--------------------------------\--------------------------------------
-	//|			 Animation	    	   |
+	//|		   AnimationFrame		   |
 	//\--------------------------------/--------------------------------------
-	AnimationFrame::AnimationFrame(d2d::TextureReference* texturePtr,
+	AnimationFrame::AnimationFrame(const d2d::Texture& texture,
 		float frameTime, const d2d::Color& tintColor,
 		const b2Vec2& relativeSize, const b2Vec2& relativePosition, float relativeAngle)
-		: m_texturePtr{ texturePtr },
+		: m_texturePtr{ &texture },
 		m_frameTime{ frameTime },
 		m_tintColor{ tintColor },
 		m_relativeSize{ relativeSize },
@@ -34,17 +35,22 @@ namespace d2d
 	}
 	void AnimationFrame::Draw(const b2Vec2& animationSize, const d2d::Color& animationColor) const
 	{
+		b2Vec2 finalSize = animationSize * m_relativeSize;
 		d2d::Window::PushMatrix();
 		d2d::Window::Translate(m_relativePosition);
 		d2d::Window::Rotate(m_relativeAngle);
 		d2d::Window::SetColor(animationColor * m_tintColor);
-		m_texturePtr->Draw(animationSize * m_relativeSize);
+		d2d::Window::DrawSprite(*m_texturePtr, finalSize);
 		d2d::Window::PopMatrix();
 	}
 	float AnimationFrame::GetFrameTime() const
 	{
 		return m_frameTime;
 	}
+
+	//+--------------------------------\--------------------------------------
+	//|		    AnimationDef		   |
+	//\--------------------------------/--------------------------------------
 	AnimationDef::AnimationDef()
 	{
 		m_frameList.clear();
@@ -64,8 +70,12 @@ namespace d2d
 	{
 		d2Assert(m_firstFrame < m_frameList.size());
 	}
+
+	//+--------------------------------\--------------------------------------
+	//|		      Animation	    	   |
+	//\--------------------------------/--------------------------------------
 	void Animation::Init(const AnimationDef& animationDef,
-		const b2Vec2& relativeSize, const b2Vec2& relativePosition, 
+		const b2Vec2& relativeSize, const b2Vec2& relativePosition,
 		float relativeAngle, const d2d::Color& tintColor)
 	{
 		m_def = animationDef;
@@ -90,7 +100,7 @@ namespace d2d
 	}
 	void Animation::Update(float dt)
 	{
-		if (IsEnabled() && 
+		if (IsEnabled() &&
 			m_def.m_type != AnimationType::STATIC &&
 			m_currentFrame < m_def.m_frameList.size())
 		{
@@ -166,21 +176,22 @@ namespace d2d
 		m_forward = m_def.m_startForward;
 		m_frameTimeAccumulator = 0.0f;
 	}
-	void Animation::SetTint(const d2d::Color& newTintColor) {
+	void Animation::SetTint(const d2d::Color& newTintColor)
+	{
 		m_tintColor = newTintColor;
 	}
 	namespace
 	{
-		class SpriteResource;
-		class SpriteAtlasResource;
+		class TextureResource;
+		class TextureAtlasResource;
 		class FontResource;
 
 		WindowDef m_windowDef;
 		bool m_sdlImageInitialized{ false };
 		SDL_Window* m_windowPtr{ nullptr };
 		SDL_GLContext m_glContext;
-		ResourceManager<SpriteResource> m_spriteManager;
-		ResourceManager<SpriteAtlasResource> m_spriteAtlasManager;
+		ResourceManager<TextureResource> m_spriteManager;
+		ResourceManager<TextureAtlasResource> m_spriteAtlasManager;
 		ResourceManager<FontResource> m_fontManager;
 		bool m_texturesEnabled;
 		bool m_blendingEnabled;
@@ -255,7 +266,7 @@ namespace d2d
 				widthToHeightRatio = (float)surface->w / (float)surface->h;
 
 			// Flip it so it complies with opengl's lower-left origin
-			InvertSurface(*surface);
+			//InvertSurface(*surface);
 
 			// Does it use the alpha channel?
 			int colorMode = GL_RGB;
@@ -278,264 +289,302 @@ namespace d2d
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, m_windowDef.gl.textureWrapT);
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, m_windowDef.gl.textureEnvMode);
 
-			// We don't need the surface anymore
-			SDL_FreeSurface(surface);
-		}
+            // We don't need the surface anymore
+            SDL_FreeSurface(surface);
+        }
 
-		//+----------------------\------------------------------------
-		//|		Resources		 |
-		//\----------------------/------------------------------------
-		class SpriteResource : public Resource
-		{
-		public:
-			// filePaths[0]: path of the image file
-			explicit SpriteResource(const std::vector<std::string>& filePaths)
-				: Resource(filePaths)
-			{
-				if (filePaths.size() < 1)
-					throw InitException{ "SpriteResource requires one filePath"s };
+        //+----------------------\------------------------------------
+        //|		Resources		 |
+        //\----------------------/------------------------------------
+        class TextureResource : public Resource
+        {
+        public:
+            // filePaths[0]: path of the image file
+            explicit TextureResource(const std::vector<std::string>& filePaths)
+                : Resource(filePaths)
+            {
+                if (filePaths.size() < 1)
+                    throw InitException{ "SpriteResource requires one filePath"s };
 
-				// Load sprite into OpenGL
-				GenerateGLTexture(filePaths[0], m_glTextureID, m_pixelWidthToHeightRatio);
-			}
-			~SpriteResource()
-			{
-				// Unload sprite from OpenGL
-				glDeleteTextures(1, &m_glTextureID);
-			}
-			GLuint GetGLTextureID() const
-			{
-				return m_glTextureID;
-			}
-			float GetPixelWidthToHeightRatio() const
-			{
-				return m_pixelWidthToHeightRatio;
-			}
-		private:
-			GLuint m_glTextureID;
-			float m_pixelWidthToHeightRatio;
-		};
+                // Load sprite into OpenGL
+                GenerateGLTexture(filePaths[0], m_glTextureID, m_pixelWidthToHeightRatio);
+            }
+            ~TextureResource()
+            {
+                // Unload sprite from OpenGL
+                glDeleteTextures(1, &m_glTextureID);
+            }
+            GLuint GetGLTextureID() const { return m_glTextureID; }
+            float GetPixelWidthToHeightRatio() const { return m_pixelWidthToHeightRatio; }
 
-		class SpriteAtlasResource : public SpriteResource
-		{
-		public:
-			// filePaths[0]: path of the image file
-			// filePaths[1]: path of the xml file with atlas data
-			explicit SpriteAtlasResource(const std::vector<std::string>& filePaths)
-				: SpriteResource(filePaths)
-			{
-				if (filePaths.size() < 2)
-					throw InitException{ "SpriteAtlasResource requires two filePaths"s };
+        private:
+            GLuint m_glTextureID;
+            float m_pixelWidthToHeightRatio;
+        };
 
-				// Load atlas data
-				boost::property_tree::ptree data;
-				boost::property_tree::read_xml(filePaths[1], data);
+        struct TextureAtlasValue
+        {
+            TextureCoordinates textureCoords;
+            float pixelWidthToHeightRatio;
+            b2Vec2 relativeCenterOfMass;
+        };
+        class TextureAtlasResource : public TextureResource
+        {
+        public:
+            // filePaths[0]: path of the image file
+            // filePaths[1]: path of the xml file with atlas data
+            explicit TextureAtlasResource(const std::vector<std::string> &filePaths)
+                : TextureResource(filePaths)
+            {
+                if (filePaths.size() < 2)
+                    throw InitException{ "TextureAtlasResource requires two filePaths"s };
 
-				int atlasWidth{ data.get<int>("TextureAtlas.<xmlattr>.width") };
-				int atlasHeight{ data.get<int>("TextureAtlas.<xmlattr>.height") };
-				SDL_assert_release(atlasWidth > 0);
-				SDL_assert_release(atlasHeight > 0);
+                // Load atlas data
+                boost::property_tree::ptree data;
+                boost::property_tree::read_xml(filePaths[1], data);
 
-				for (auto const& spriteNode : data.get_child("TextureAtlas"))
-				{
-					if (spriteNode.first == "sprite")
-					{
-						// name
-						std::string spriteName{ spriteNode.second.get<std::string>("<xmlattr>.name") };
-						SDL_assert_release(spriteName.length() > 0);
+                int atlasWidth{data.get<int>("TextureAtlas.<xmlattr>.width")};
+                int atlasHeight{data.get<int>("TextureAtlas.<xmlattr>.height")};
+                SDL_assert_release(atlasWidth > 0);
+                SDL_assert_release(atlasHeight > 0);
 
-						int x{ spriteNode.second.get<int>("<xmlattr>.x") };
-						int y{ spriteNode.second.get<int>("<xmlattr>.y") };
-						SDL_assert_release(x >= 0);
-						SDL_assert_release(x < atlasWidth);
-						SDL_assert_release(y >= 0);
-						SDL_assert_release(y < atlasHeight);
+                for (auto const &spriteNode : data.get_child("TextureAtlas"))
+                {
+                    if (spriteNode.first == "sprite")
+                    {
+                        // name
+                        std::string spriteName = spriteNode.second.get<std::string>("<xmlattr>.n");
+                        SDL_assert_release(spriteName.length() > 0);
 
-						int w{ spriteNode.second.get<int>("<xmlattr>.w") };
-						int h{ spriteNode.second.get<int>("<xmlattr>.h") };
-						SDL_assert_release(w > 0);
-						SDL_assert_release(w <= atlasWidth);
-						SDL_assert_release(h > 0);
-						SDL_assert_release(h <= atlasHeight);
+                        // position
+                        int x = spriteNode.second.get<int>("<xmlattr>.x");
+                        int y = spriteNode.second.get<int>("<xmlattr>.y");
+                        SDL_assert_release(x >= 0);
+                        SDL_assert_release(x < atlasWidth);
+                        SDL_assert_release(y >= 0);
+                        SDL_assert_release(y < atlasHeight);
 
-						int x2{ x + w };
-						int y2{ y + h };
-						SDL_assert_release(x2 <= atlasWidth);
-						SDL_assert_release(y2 <= atlasHeight);
+                        // size
+                        int w = spriteNode.second.get<int>("<xmlattr>.w");
+                        int h = spriteNode.second.get<int>("<xmlattr>.h");
+                        SDL_assert_release(w > 0);
+                        SDL_assert_release(w <= atlasWidth);
+                        SDL_assert_release(h > 0);
+                        SDL_assert_release(h <= atlasHeight);
 
-						b2Vec2 lowerTextureCoordinate{ (float)x / (float)atlasWidth, (float)y / (float)atlasHeight };
-						b2Vec2 upperTextureCoordinate{ (float)x2 / (float)atlasWidth, (float)y2 / (float)atlasHeight };
-						m_textureCoordinatesMap[spriteName].SetBounds(lowerTextureCoordinate, upperTextureCoordinate);
-						m_pixelWidthToHeightRatioMap[spriteName] = (float)w / (float)h;
-					}
-				}
-			}
-			const d2d::Rect & GetTextureCoordinates(const std::string & spriteName) const
-			{
-				return m_textureCoordinatesMap.at(spriteName);
-			}
-			float GetPixelWidthToHeightRatio(const std::string & spriteName) const
-			{
-				return m_pixelWidthToHeightRatioMap.at(spriteName);
-			}
+                        // center of mass
+                        float pivotRelativeX = spriteNode.second.get<float>("<xmlattr>.pX");
+                        float pivotRelativeY = spriteNode.second.get<float>("<xmlattr>.pY");
+                        SDL_assert_release(pivotRelativeX >= 0.0f);
+                        SDL_assert_release(pivotRelativeX <= 1.0f);
+                        SDL_assert_release(pivotRelativeY >= 0.0f);
+                        SDL_assert_release(pivotRelativeY <= 1.0f);
 
-		private:
-			std::unordered_map<std::string, d2d::Rect> m_textureCoordinatesMap;
-			std::unordered_map<std::string, float> m_pixelWidthToHeightRatioMap;
-		};
+                        // opposite corner
+                        int x2 = x + w;
+                        int y2 = y + h;
+                        SDL_assert_release(x2 <= atlasWidth);
+                        SDL_assert_release(y2 <= atlasHeight);
 
-		class FontResource : public Resource
-		{
-		public:
-			static const int dtxFontSize{ 192 };
+                        boost::optional<const boost::property_tree::ptree&> rot = spriteNode.second.get_child_optional( "<xmlattr>.r" );
+                        bool isRotatedClockwise90Degrees = (bool)rot;
 
-		public:
-			// filePaths[0]: path of the font file
-			explicit FontResource(const std::vector<std::string>& filePaths)
-				: Resource(filePaths)
-			{
-				if (filePaths.size() < 1)
-					throw InitException{ "FontResource requires one filePath"s };
+                        TextureAtlasValue& spriteEntryRef = m_spriteMap[spriteName];
+                        const float X1 = (float) x / (float) atlasWidth;
+                        const float Y1 = (float) y / (float) atlasHeight;
+                        const float X2 = (float) x2 / (float) atlasWidth;
+                        const float Y2 = (float) y2 / (float) atlasHeight;
+                        if(!isRotatedClockwise90Degrees)
+                        {
+                            spriteEntryRef.textureCoords.lowerLeft.Set(X1, Y2);
+                            spriteEntryRef.textureCoords.lowerRight.Set(X2, Y2);
+                            spriteEntryRef.textureCoords.upperRight.Set(X2, Y1);
+                            spriteEntryRef.textureCoords.upperLeft.Set(X1, Y1);
+                        }
+                        else
+                        {
+                            spriteEntryRef.textureCoords.lowerLeft.Set(X1, Y1);
+                            spriteEntryRef.textureCoords.lowerRight.Set(X1, Y2);
+                            spriteEntryRef.textureCoords.upperRight.Set(X2, Y2);
+                            spriteEntryRef.textureCoords.upperLeft.Set(X2, Y1);
+                            std::swap(w, h);
+                        }
+                        spriteEntryRef.pixelWidthToHeightRatio = (float) w / (float) h;
+                        spriteEntryRef.relativeCenterOfMass.Set(pivotRelativeX, pivotRelativeY);
+                    }
+                }
+            }
+            const TextureAtlasValue& GetValue(const std::string& spriteName) const
+            {
+                return m_spriteMap.at(spriteName);
+            }
 
-				m_dtxFontPtr = dtx_open_font(filePaths[0].c_str(), dtxFontSize);
-				if (!m_dtxFontPtr)
-					throw InitException{ "Failed to open font: "s + filePaths[0] };
-			}
-			~FontResource()
-			{
-				if (m_dtxFontPtr)
-					dtx_close_font(m_dtxFontPtr);
-			}
-			dtx_font* GetDTXFontPtr() const
-			{
-				return m_dtxFontPtr;
-			}
+        private:
+            std::unordered_map<std::string, TextureAtlasValue> m_spriteMap;
+        };
 
-		private:
-			struct dtx_font* m_dtxFontPtr{ nullptr };
-		};
-	}
+        class FontResource : public Resource
+        {
+        public:
+            static const int dtxFontSize{192};
 
-	//+----------------------\------------------------------------
-	//|	 Resource References |
-	//\----------------------/------------------------------------
-	TextureAtlasReference::TextureAtlasReference(const std::string & imagePath, const std::string & atlasXMLPath)
-		: ResourceReference(m_spriteAtlasManager.Load({ imagePath, atlasXMLPath }))
-	{ }
-	TextureAtlasReference::~TextureAtlasReference()
-	{
-		m_spriteAtlasManager.Unload(GetID());
-	}
+        public:
+            // filePaths[0]: path of the font file
+            explicit FontResource(const std::vector<std::string> &filePaths)
+                : Resource(filePaths)
+            {
+                if (filePaths.size() < 1)
+                    throw InitException{"FontResource requires one filePath"s};
 
-	TextureReference::TextureReference(const std::string & imagePath)
-		: ResourceReference(m_spriteManager.Load({ imagePath }))
-	{
-		m_referencesAtlas = false;
-		m_textureCoordinates.SetBounds(b2Vec2_zero, { 1.0f, 1.0f });
-		m_widthToHeightRatio = m_spriteManager.GetResource(GetID()).GetPixelWidthToHeightRatio();
-	}
-	TextureReference::TextureReference(unsigned textureAtlasID, const std::string & name)
-		: ResourceReference(textureAtlasID)
-	{
-		m_referencesAtlas = true;
-		m_textureCoordinates = m_spriteAtlasManager.GetResource(GetID()).GetTextureCoordinates(name);
-		m_widthToHeightRatio = m_spriteAtlasManager.GetResource(GetID()).GetPixelWidthToHeightRatio(name);
-	}
-	TextureReference::~TextureReference()
-	{
-		if (m_referencesAtlas)
-			m_spriteAtlasManager.Unload(GetID());
-		else
-			m_spriteManager.Unload(GetID());
-	}
-	float TextureReference::GetWidthToHeightRatio() const
-	{
-		return m_widthToHeightRatio;
-	}
-	GLuint TextureReference::GetGLTextureID() const
-	{
-		if (m_referencesAtlas)
-			return m_spriteAtlasManager.GetResource(GetID()).GetGLTextureID();
-		else
-			return m_spriteManager.GetResource(GetID()).GetGLTextureID();
-	}
-	const Rect& TextureReference::GetTextureCoordinates() const
-	{
-		return m_textureCoordinates;
-	}
-	void TextureReference::Draw(const b2Vec2& size) const
-	{
-		Rect drawRect;
-		drawRect.SetCenter(b2Vec2_zero, size);
-		DrawInRect(drawRect);
-	}
-	void TextureReference::DrawInRect(const Rect& drawRect) const
-	{
-		// Bind sprite
-		GLuint glTextureID{ GetGLTextureID() };
-		if (!m_textureBinded || m_boundGLTextureID != glTextureID)
-		{
-			glBindTexture(GL_TEXTURE_2D, glTextureID);
-			m_boundGLTextureID = glTextureID;
-		}
+                m_dtxFontPtr = dtx_open_font(filePaths[0].c_str(), dtxFontSize);
+                if (!m_dtxFontPtr)
+                    throw InitException{"Failed to open font: "s + filePaths[0]};
+            }
+            ~FontResource()
+            {
+                if (m_dtxFontPtr)
+                    dtx_close_font(m_dtxFontPtr);
+            }
+            dtx_font *GetDTXFontPtr() const { return m_dtxFontPtr; }
 
-		const Rect& texCoords{ GetTextureCoordinates() };
-		glBegin(GL_QUADS);
-		glTexCoord2f(texCoords.lowerBound.x, texCoords.lowerBound.y);
-		glVertex2f(drawRect.lowerBound.x, drawRect.lowerBound.y);
-		glTexCoord2f(texCoords.upperBound.x, texCoords.lowerBound.y);
-		glVertex2f(drawRect.upperBound.x, drawRect.lowerBound.y);
-		glTexCoord2f(texCoords.upperBound.x, texCoords.upperBound.y);
-		glVertex2f(drawRect.upperBound.x, drawRect.upperBound.y);
-		glTexCoord2f(texCoords.lowerBound.x, texCoords.upperBound.y);
-		glVertex2f(drawRect.lowerBound.x, drawRect.upperBound.y);
-		glEnd();
-	}
+        private:
+            struct dtx_font *m_dtxFontPtr{nullptr};
+        };
+    } // namespace
 
-	FontReference::FontReference(const std::string & fontPath)
-		: ResourceReference(m_fontManager.Load({ fontPath }))
-	{ }
-	FontReference::~FontReference()
-	{
-		m_fontManager.Unload(GetID());
-	}
+    //+--------------------------\--------------------------------
+    //|	        Texture          |
+    //\--------------------------/--------------------------------
+    TextureStandalone::TextureStandalone(const std::string& imagePath)
+        : ResourceReference(m_spriteManager.Load({imagePath}))
+    {}
+    TextureStandalone::~TextureStandalone()
+    {
+        m_spriteManager.Unload(GetID());
+    }
+    float TextureStandalone::GetWidthToHeightRatio() const
+    {
+        return m_spriteManager.GetResource(GetID()).GetPixelWidthToHeightRatio();
+    }
+    GLuint TextureStandalone::GetGLTextureID() const
+    {
+        return m_spriteManager.GetResource(GetID()).GetGLTextureID();
+    }
+    const TextureCoordinates& TextureStandalone::GetTextureCoordinates() const
+    {
+        static const TextureCoordinates NORMAL_FULL_TEXTURE_COORD{
+            .lowerLeft{ 0.0f, 1.0f },
+            .lowerRight{ 1.0f, 1.0f },
+            .upperRight{ 1.0f, 0.0f },
+            .upperLeft{ 0.0f, 0.0f }
+        };
+        return NORMAL_FULL_TEXTURE_COORD;
+    }
 
-	namespace Window
-	{
-		//+----------------------\------------------------------------
-		//|	Startup and shutdown |
-		//\----------------------/------------------------------------
-		void Init(const WindowDef& windowDef)
-		{
-			// Save settings
-			m_windowDef = windowDef;
+    //+--------------------------\--------------------------------
+    //|	      TextureAtlas       |
+    //\--------------------------/--------------------------------
+    TextureAtlas::TextureAtlas(const std::string& imagePath, const std::string& atlasXMLPath)
+        : ResourceReference(m_spriteAtlasManager.Load({imagePath, atlasXMLPath}))
+    {}
+    TextureAtlas::~TextureAtlas()
+    {
+        m_spriteAtlasManager.Unload(GetID());
+    }
+    GLuint TextureAtlas::GetGLTextureID() const
+    {
+        return m_spriteAtlasManager.GetResource(GetID()).GetGLTextureID();
+    }
+    float TextureAtlas::GetWidthToHeightRatio(const std::string& name) const
+    {
+        return m_spriteAtlasManager.GetResource(GetID()).GetValue(name).pixelWidthToHeightRatio;
+    }
+    const TextureCoordinates& TextureAtlas::GetTextureCoordinates(const std::string& name) const
+    {
+        return m_spriteAtlasManager.GetResource(GetID()).GetValue(name).textureCoords;
+    }
+    const b2Vec2& TextureAtlas::GetRelativeCenterOfMass(const std::string& name) const
+    {
+        return m_spriteAtlasManager.GetResource(GetID()).GetValue(name).relativeCenterOfMass;
+    }
 
-			// Make sure SDL video subsystem is initialized
-			if(!SDL_WasInit(SDL_INIT_VIDEO))
-				throw InitException{ "Failed to initialize window: SDL video system not yet initialized" };
+    //+--------------------------\--------------------------------
+    //|     TextureFromAtlas     |
+    //\--------------------------/--------------------------------
+    TextureFromAtlas::TextureFromAtlas(const TextureAtlas& atlas, const std::string& name)
+        : m_atlasPtr{ &atlas },
+          m_name{ name }
+    {}
+    float TextureFromAtlas::GetWidthToHeightRatio() const
+    {
+        return m_atlasPtr->GetWidthToHeightRatio(m_name);
+    }
+    GLuint TextureFromAtlas::GetGLTextureID() const
+    {
+        return m_atlasPtr->GetGLTextureID();
+    }
+    const TextureCoordinates& TextureFromAtlas::GetTextureCoordinates() const
+    {
+        return m_atlasPtr->GetTextureCoordinates(m_name);
+    }
+    const b2Vec2& TextureFromAtlas::GetRelativeCenterOfMass() const
+    {
+        return m_atlasPtr->GetRelativeCenterOfMass(m_name);
+    }
 
-			// Get rid of previous window, if it exists.
-			Close();
+    //+--------------------------\--------------------------------
+    //|      FontReference       |
+    //\--------------------------/--------------------------------
+    FontReference::FontReference(const std::string &fontPath)
+        : ResourceReference(m_fontManager.Load({fontPath}))
+    {}
+    FontReference::~FontReference()
+    {
+        m_fontManager.Unload(GetID());
+    }
 
-			// SDL_image
-			{
-				IMG_SetError("");
-				int imageExtensionsLoaded = IMG_Init(windowDef.imageExtensions);
-				if((imageExtensionsLoaded & windowDef.imageExtensions) != windowDef.imageExtensions)
-					throw InitException{ std::string{"Failed to load all requested imageExtensions: "} +IMG_GetError() };
-				m_sdlImageInitialized = true;
-			}
+    //+--------------------------\--------------------------------
+    //|          Window          |
+    //\--------------------------/--------------------------------
+    namespace Window
+    {
+        //+----------------------\------------------------------------
+        //|	Startup and shutdown |
+        //\----------------------/------------------------------------
+        void Init(const WindowDef &windowDef)
+        {
+            // Save settings
+            m_windowDef = windowDef;
 
-			// OpenGL settings
-			{
-				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, m_windowDef.gl.profileMask);
-				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_windowDef.gl.versionMajor);
-				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_windowDef.gl.versionMinor);
-				SDL_GL_SetAttribute(SDL_GL_RED_SIZE, m_windowDef.colorChannelBits[0]);
-				SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, m_windowDef.colorChannelBits[1]);
-				SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, m_windowDef.colorChannelBits[2]);
-				SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, m_windowDef.colorChannelBits[3]);
-				SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, m_windowDef.doubleBuffer);
+            // Make sure SDL video subsystem is initialized
+            if (!SDL_WasInit(SDL_INIT_VIDEO))
+                throw InitException{
+                    "Failed to initialize window: SDL video system not yet initialized"};
+
+            // Get rid of previous window, if it exists.
+            Close();
+
+            // SDL_image
+            {
+                SDL_ClearError();
+                int imageExtensionsLoaded = IMG_Init(windowDef.imageExtensions);
+                if ((imageExtensionsLoaded & windowDef.imageExtensions) != windowDef.imageExtensions)
+                    throw InitException{
+                        std::string{"Failed to load all requested imageExtensions: "}
+                        + IMG_GetError()};
+                m_sdlImageInitialized = true;
+            }
+
+            // OpenGL settings
+            {
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, m_windowDef.gl.profileMask);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_windowDef.gl.versionMajor);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_windowDef.gl.versionMinor);
+                SDL_GL_SetAttribute(SDL_GL_RED_SIZE, m_windowDef.colorChannelBits[0]);
+                SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, m_windowDef.colorChannelBits[1]);
+                SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, m_windowDef.colorChannelBits[2]);
+                SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, m_windowDef.colorChannelBits[3]);
+                SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, m_windowDef.doubleBuffer);
 
 				int samples = d2d::GetClamped(m_windowDef.antiAliasingSamples, VALID_ANTI_ALIASING_SAMPLES);
 				if(samples >= MIN_SAMPLES_TO_ENABLE_ANTI_ALIASING)
@@ -547,26 +596,26 @@ namespace d2d
 					SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 			}
 
-			// Create window
-			{
-				Uint32 windowFlags{ SDL_WINDOW_OPENGL };
-				int width = m_windowDef.size.at(0);
-				int height = m_windowDef.size.at(1);
-				int x = m_windowDef.position.at(0);
-				int y = m_windowDef.position.at(1);
-				if(m_windowDef.fullScreen)
-					windowFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-				else
-					windowFlags |= SDL_WINDOW_RESIZABLE;
+            // Create window
+            {
+                Uint32 windowFlags{ SDL_WINDOW_OPENGL };
+                int width = m_windowDef.size.at(0);
+                int height = m_windowDef.size.at(1);
+                int x = m_windowDef.position.at(0);
+                int y = m_windowDef.position.at(1);
+                if(m_windowDef.fullScreen)
+                    windowFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+                else
+                    windowFlags |= SDL_WINDOW_RESIZABLE;
 
-				SDL_SetError("");
+				SDL_ClearError();
 				m_windowPtr = SDL_CreateWindow(m_windowDef.title.c_str(), x, y, width, height, windowFlags);
 				if(!m_windowPtr)
 					throw InitException{ std::string{"SDL_CreateWindow failed: "} +SDL_GetError() };
 			}
 
 			// Create OpenGL context
-			SDL_SetError("");
+			SDL_ClearError();
 			if(!(m_glContext = SDL_GL_CreateContext(m_windowPtr)))
 				throw InitException{ std::string{"SDL_GL_CreateContext failed: "} +SDL_GetError() };
 
@@ -608,8 +657,7 @@ namespace d2d
 		void Close()
 		{
 			// Shutdown SDL_Image
-			if (m_sdlImageInitialized)
-			{
+			if (m_sdlImageInitialized) {
 				IMG_Quit();
 				m_sdlImageInitialized = false;
 			}
@@ -694,8 +742,8 @@ namespace d2d
 		void SetLineWidth(float width)
 		{
 			// -----------------------------------
-			// Support for glLineWidth is not 
-			// required of OpenGL implementations, 
+			// Support for glLineWidth is not
+			// required of OpenGL implementations,
 			// and probably won't work!
 			// -----------------------------------
 			glLineWidth(width);
@@ -879,8 +927,7 @@ namespace d2d
 			//if (m_bindedDTXFontSize < 0)
 			//	return;
 
-
-
+			// ***********************************************************************************************************
 			// ***********************************************************************************************************
 			// TODO: THIS IS HACKED TOGETHER... MAKE A PROPER TEXT SIZING MECHANISM, OR SWITCH TO ANOTHER GL TEXT LIB
 			// ***********************************************************************************************************
@@ -889,9 +936,8 @@ namespace d2d
 			//size *= 0.5f * (resolution.x + resolution.y);
 			float scale{ size / (float)FontResource::dtxFontSize };
 			glScalef(scale, scale, 1.0f);
-
-
-
+			// ***********************************************************************************************************
+			// ***********************************************************************************************************
 
 			// Alignment: dtx string alignment is left bottom of the first character of the first line,
 			//	so we have to translate to that point.
@@ -931,7 +977,7 @@ namespace d2d
 				translation.x = -(stringDimensions.width + fontPadding);
 				translation.y = 0.5f * stringDimensions.height - fontHeight;
 				break;
-			case Alignment::LEFT_BOTTOM:  // dtx origin 
+			case Alignment::LEFT_BOTTOM:  // dtx origin
 			default:
 				translation.x = fontPadding;
 				translation.y = stringDimensions.height + fontPadding - fontHeight;
@@ -952,38 +998,34 @@ namespace d2d
 			dtx_string(text.c_str());
 			Window::PopMatrix();
 		}
-		void DrawSprite(ResourceID spriteID, const b2Vec2& size)
+		void DrawSprite(const Texture& texture, const b2Vec2& size)
 		{
 			Rect drawRect;
 			drawRect.SetCenter(b2Vec2_zero, size);
-			DrawSpriteInRect(spriteID, drawRect);
+			DrawSpriteInRect(texture, drawRect);
 		}
-		void DrawSpriteInRect(ResourceID spriteID, const Rect& drawRect)
+		void DrawSpriteInRect(const Texture& texture, const Rect& drawRect)
 		{
-			// Get resource
-			const d2d::SpriteResource& spriteResource = m_spriteManager.GetResource(spriteID);
-
-			// Bind sprite
-			GLuint glTextureID{ spriteResource.GetGLTextureID()};
-			
+			GLuint glTextureID = texture.GetGLTextureID();
 			if (!m_textureBinded || m_boundGLTextureID != glTextureID)
 			{
 				glBindTexture(GL_TEXTURE_2D, glTextureID);
 				m_boundGLTextureID = glTextureID;
 			}
 
-			//const Rect& texCoords{ spriteResource.GetTextureCoordinates() };
-			const Rect& texCoords{ b2Vec2_zero, b2Vec2{1.0f, 1.0f} };
-			glBegin(GL_QUADS);
-			glTexCoord2f(texCoords.lowerBound.x, texCoords.lowerBound.y);
-			glVertex2f(drawRect.lowerBound.x, drawRect.lowerBound.y);
-			glTexCoord2f(texCoords.upperBound.x, texCoords.lowerBound.y);
-			glVertex2f(drawRect.upperBound.x, drawRect.lowerBound.y);
-			glTexCoord2f(texCoords.upperBound.x, texCoords.upperBound.y);
-			glVertex2f(drawRect.upperBound.x, drawRect.upperBound.y);
-			glTexCoord2f(texCoords.lowerBound.x, texCoords.upperBound.y);
-			glVertex2f(drawRect.lowerBound.x, drawRect.upperBound.y);
-			glEnd();
-		}
-	}
-}
+            TextureCoordinates textureCoords = texture.GetTextureCoordinates();
+            glBegin(GL_QUADS);
+            {
+                glTexCoord2f(textureCoords.lowerLeft.x, textureCoords.lowerLeft.y);
+                glVertex2f(drawRect.lowerBound.x, drawRect.lowerBound.y);
+                glTexCoord2f(textureCoords.lowerRight.x, textureCoords.lowerRight.y);
+                glVertex2f(drawRect.upperBound.x, drawRect.lowerBound.y);
+                glTexCoord2f(textureCoords.upperRight.x, textureCoords.upperRight.y);
+                glVertex2f(drawRect.upperBound.x, drawRect.upperBound.y);
+                glTexCoord2f(textureCoords.upperLeft.x, textureCoords.upperLeft.y);
+                glVertex2f(drawRect.lowerBound.x, drawRect.upperBound.y);
+            }
+            glEnd();
+        }
+    } // namespace Window
+} // namespace d2d

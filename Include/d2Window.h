@@ -1,8 +1,8 @@
 /**************************************************************************************\
 ** File: d2Window.h
-** Project: 
+** Project:
 ** Author: David Leksen
-** Date: 
+** Date:
 **
 ** Header file for the Window class
 **
@@ -16,30 +16,53 @@ namespace d2d
 	//+------------------\----------------------------------------
 	//|	   Textures 	 |
 	//\------------------/----------------------------------------
-	class TextureAtlasReference : public ResourceReference
+	struct TextureCoordinates
 	{
-	public:
-		TextureAtlasReference(const std::string& imagePath, const std::string& atlasXMLPath);
-		virtual ~TextureAtlasReference();
+		b2Vec2 lowerLeft;
+		b2Vec2 lowerRight;
+		b2Vec2 upperRight;
+		b2Vec2 upperLeft;
 	};
-	class TextureReference : public ResourceReference
-	{
-	public:
-		TextureReference(const std::string& imagePath);
-		TextureReference(unsigned textureAtlasID, const std::string& name);
-		virtual ~TextureReference();
-		float GetWidthToHeightRatio() const;
-		void Draw(const b2Vec2& size) const;
-		void DrawInRect(const Rect& drawRect) const;
 
-	private:
-		bool m_referencesAtlas;
-		Rect m_textureCoordinates;
-		float m_widthToHeightRatio;
+    class TextureAtlas : public ResourceReference
+    {
+    public:
+        TextureAtlas(const std::string& imagePath, const std::string& atlasXMLPath);
+        virtual ~TextureAtlas();
+        GLuint GetGLTextureID() const;
+        float GetWidthToHeightRatio(const std::string& name) const;
+        const TextureCoordinates& GetTextureCoordinates(const std::string& name) const;
+        const b2Vec2& GetRelativeCenterOfMass(const std::string& name) const;
+    };
 
-		GLuint GetGLTextureID() const;
-		const Rect& GetTextureCoordinates() const;
-	};
+    class Texture
+    {
+    public:
+        virtual ~Texture() {};
+        virtual GLuint GetGLTextureID() const = 0;
+        virtual const TextureCoordinates& GetTextureCoordinates() const = 0;
+    };
+    class TextureFromAtlas : public Texture
+    {
+    public:
+        TextureFromAtlas(const TextureAtlas& atlas, const std::string& name);
+        virtual GLuint GetGLTextureID() const;
+        virtual const TextureCoordinates& GetTextureCoordinates() const;
+        float GetWidthToHeightRatio() const;
+        const b2Vec2& GetRelativeCenterOfMass() const;
+    private:
+        const TextureAtlas *const m_atlasPtr;
+        std::string m_name;
+    };
+    class TextureStandalone : public ResourceReference, public Texture
+    {
+    public:
+        TextureStandalone(const std::string& imagePath);
+        virtual ~TextureStandalone();
+        virtual GLuint GetGLTextureID() const;
+        virtual const TextureCoordinates& GetTextureCoordinates() const;
+        float GetWidthToHeightRatio() const;
+    };
 
 	//+------------------\----------------------------------------
 	//|	     Text 		 |
@@ -63,15 +86,15 @@ namespace d2d
 	class AnimationFrame
 	{
 	public:
-		AnimationFrame(d2d::TextureReference* texturePtr,
-			float frameTime = 0.0f, const d2d::Color& tintColor = d2d::WHITE_OPAQUE, 
+		AnimationFrame(const d2d::Texture& texture,
+			float frameTime = 0.0f, const d2d::Color& tintColor = d2d::WHITE_OPAQUE,
 			const b2Vec2& relativeSize = { 1.0f, 1.0f },
 			const b2Vec2& relativePosition = b2Vec2_zero, float relativeAngle = 0.0f);
 		void Draw(const b2Vec2& animationSize, const d2d::Color& animationColor) const;
 		float GetFrameTime() const;
 
 	private:
-		d2d::TextureReference* m_texturePtr{ nullptr };
+		d2d::Texture const* m_texturePtr{ nullptr };
 		float m_frameTime;
 		d2d::Color m_tintColor;
 		b2Vec2 m_relativeSize;
@@ -134,7 +157,7 @@ namespace d2d
 	//\------------------/----------------------------------------
 	struct OpenGLSettings
 	{
-		// profileMask: 
+		// profileMask:
 		//		SDL_GL_CONTEXT_PROFILE_CORE
 		//		SDL_GL_CONTEXT_PROFILE_COMPATIBILITY
 		//		SDL_GL_CONTEXT_PROFILE_ES
@@ -144,7 +167,7 @@ namespace d2d
 		GLenum shadeModel{ GL_SMOOTH };
 		GLenum perspectiveCorrectionMode{ GL_NICEST };
 
-		// texture2DMinFilter: 
+		// texture2DMinFilter:
 		//		GL_NEAREST_MIPMAP_NEAREST
 		//		GL_LINEAR_MIPMAP_NEAREST
 		//		GL_NEAREST_MIPMAP_LINEAR
@@ -153,12 +176,12 @@ namespace d2d
 		//		GL_LINEAR
 		GLint texture2DMinFilter{ GL_LINEAR };
 
-		// texture2DMagFilter: 
+		// texture2DMagFilter:
 		//		GL_NEAREST
-		//		GL_LINEAR 
+		//		GL_LINEAR
 		GLint texture2DMagFilter{ GL_LINEAR };
 
-		// textureWrapS: 
+		// textureWrapS:
 		//		GL_CLAMP_TO_EDGE
 		//		GL_CLAMP_TO_BORDER,
 		//		GL_MIRRORED_REPEAT
@@ -191,10 +214,10 @@ namespace d2d
 		// OpenGL point sizes
 		const unsigned NUM_POINT_SIZES{ 21 };
 		const float POINT_SIZES[NUM_POINT_SIZES] =
-			{ 0.5f, 0.625f, 0.75f, 0.875f, 
-			  1.0f, 1.25f, 1.5f, 1.75f, 
-			  2.0f, 2.25f, 2.5f, 3.0f, 3.5f, 
-			  4.0f, 4.5f, 5.0f, 6.0f, 
+			{ 0.5f, 0.625f, 0.75f, 0.875f,
+			  1.0f, 1.25f, 1.5f, 1.75f,
+			  2.0f, 2.25f, 2.5f, 3.0f, 3.5f,
+			  4.0f, 4.5f, 5.0f, 6.0f,
 			  7.0f, 8.0f, 9.0f, 10.0f };
 		const Range<int> VALID_POINT_SIZES{ 0, NUM_POINT_SIZES - 1 };
 
@@ -242,7 +265,9 @@ namespace d2d
 		void DrawLine(const b2Vec2& p1, const b2Vec2& p2);
 		void DrawLineStrip(const b2Vec2* vertices, unsigned vertexCount);
 		void DrawString(const std::string &text, Alignment alignment, float size, const FontReference& font);
-		void DrawSprite(ResourceID spriteID, const b2Vec2& size);
-		void DrawSpriteInRect(ResourceID spriteID, const Rect& drawRect);
-	}
+//        void DrawSprite(GLuint glTextureID, const b2Vec2& lowerLeftTextureCoord, const b2Vec2& upperRightTextureCoord, const b2Vec2& size);
+//        void DrawSpriteInRect(GLuint glTextureID, const b2Vec2& lowerLeftTextureCoord, const b2Vec2& upperRightTextureCoord, const Rect& drawRect);
+        void DrawSprite(const Texture& texture, const b2Vec2& size);
+        void DrawSpriteInRect(const Texture& texture, const Rect& drawRect);
+    }
 }
