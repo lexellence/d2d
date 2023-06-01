@@ -3,6 +3,6 @@ OpenGL
 SDL2
 SDL2_image
 SDL2_Net
-freetype-2.12.1
+freetype
 Box2D
 Boost
