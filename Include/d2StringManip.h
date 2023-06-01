@@ -1,8 +1,8 @@
 /**************************************************************************************\
 ** File: d2StringManip.h
-** Project: 
+** Project:
 ** Author: David Leksen
-** Date: 
+** Date:
 **
 ** Header file for string manipulation functions
 **

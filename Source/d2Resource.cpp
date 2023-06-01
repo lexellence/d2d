@@ -19,17 +19,17 @@ namespace d2d
 	Resource::~Resource()
 	{ }
 	void Resource::IncrementReferenceCount()
-	{ 
-		++m_referenceCount; 
+	{
+		++m_referenceCount;
 	}
-	void Resource::DecrementReferenceCount() 
-	{ 
+	void Resource::DecrementReferenceCount()
+	{
 		if(m_referenceCount > 0)
 			--m_referenceCount;
 	}
-	unsigned long Resource::GetReferenceCount() const 
-	{ 
-		return m_referenceCount; 
+	unsigned long Resource::GetReferenceCount() const
+	{
+		return m_referenceCount;
 	}
 	const std::vector<std::string>& Resource::GetFilePaths() const
 	{
@@ -42,7 +42,7 @@ namespace d2d
 	ResourceReference::~ResourceReference()
 	{ }
 	ResourceID ResourceReference::GetID() const
-	{ 
-		return m_id; 
+	{
+		return m_id;
 	}
 }

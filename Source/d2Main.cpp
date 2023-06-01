@@ -55,7 +55,7 @@ namespace d2d
 			assertionFailedStream << "Assertion failed!";
 			if(assertPtr)
 			{
-				assertionFailedStream 
+				assertionFailedStream
 					<< " [Condition] "	<< assertPtr->condition
 					<< " [File] "		<< assertPtr->filename
 					<< " [Function] "	<< assertPtr->function
@@ -70,9 +70,9 @@ namespace d2d
 		atexit(d2d::Shutdown);
 
 		// Start logging
-		//boost::log::register_simple_formatter_factory<d2LogSeverity, char>("Severity");
-		//boost::log::add_file_log
-		/*(
+		boost::log::register_simple_formatter_factory<d2LogSeverity, char>("Severity");
+		boost::log::add_file_log
+		(
 			boost::log::keywords::file_name = logOutputFilePath,
 			boost::log::keywords::format = "[%Severity%] %Message%"
 		);
@@ -80,7 +80,7 @@ namespace d2d
 		(
 			boost::log::trivial::severity >= minSeverityToLog
 		);
-		boost::log::add_common_attributes();*/
+		boost::log::add_common_attributes();
 
 		// SDL
 		if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
@@ -99,7 +99,7 @@ namespace d2d
 			throw InitException{ message };
 		}
 		m_sdlNetInitialized = true;
-		
+
 		// Set callback/handler funtions
 		SDL_SetAssertionHandler(d2AssertionHandler, nullptr);
 		SDL_SetEventFilter(d2EventFilter, nullptr);
@@ -128,7 +128,7 @@ namespace d2d
 			else
 				++gamepadsFailedToMap;
 		}
-		
+
 		std::string gamepadsMessage{ ToString(gamepadsMapped) + " gamepads mapped. " };
 		if(gamepadsFailedToMap > 0)
 			gamepadsMessage += ", " + ToString(gamepadsFailedToMap) + " gamepads failed to map";

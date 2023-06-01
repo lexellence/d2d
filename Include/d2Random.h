@@ -1,8 +1,8 @@
 /**************************************************************************************\
 ** File: d2Random.h
-** Project: 
+** Project:
 ** Author: David Leksen
-** Date: 
+** Date:
 **
 ** Header file for random number functions
 **

@@ -39,7 +39,7 @@ namespace d2d
 	{
 		switch(event.type)
 		{
-		case SDL_KEYDOWN:	
+		case SDL_KEYDOWN:
 			switch(event.key.keysym.sym)
 			{
 			case SDLK_UP:		SelectPrevious();	break;
@@ -47,7 +47,7 @@ namespace d2d
 			case SDLK_RETURN:	PressSelected();	break;
 			}
 			break;
-		case SDL_CONTROLLERBUTTONDOWN:	
+		case SDL_CONTROLLERBUTTONDOWN:
 			switch(event.cbutton.button)
 			{
 			case SDL_CONTROLLER_BUTTON_DPAD_UP:		SelectPrevious();	break;
@@ -56,7 +56,7 @@ namespace d2d
 			case SDL_CONTROLLER_BUTTON_A:			PressSelected();	break;
 			}
 			break;
-		case SDL_CONTROLLERAXISMOTION:	
+		case SDL_CONTROLLERAXISMOTION:
 			if(event.caxis.axis == SDL_CONTROLLER_AXIS_LEFTY)
 			{
 				float currentAxisFactor{ d2d::AxisToUnit(event.caxis.value) };

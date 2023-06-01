@@ -1,10 +1,10 @@
 /**************************************************************************************\
 ** File: d2Network.h
-** Project: 
+** Project:
 ** Author: David Leksen
-** Date: 
+** Date:
 **
-** Header file for 
+** Header file for
 **
 \**************************************************************************************/
 #pragma once
@@ -32,11 +32,11 @@ namespace d2d
 		void UnloadBytes(ByteBuffer& outBuffer);
 
 		//set the state object to full. No more data to be loaded
-		void Finish(); 
+		void Finish();
 
 	protected:
 		ByteBuffer m_buffer;
-		enum class BufferState 
+		enum class BufferState
 		{
 			EMPTY,
 			READING,
@@ -45,7 +45,7 @@ namespace d2d
 		} m_bufferState;
 
 		// reset message: fulfill it with zeroes and change its state to EMPTY
-		void Reset(); 
+		void Reset();
 	};
 
 	//+--------------------------------\--------------------------------------
@@ -70,13 +70,13 @@ namespace d2d
 	//+--------------------------------\--------------------------------------
 	//|			  TcpSocket			   |
 	//\--------------------------------/--------------------------------------
-	class TcpSocket 
+	class TcpSocket
 	{
 	public:
 		TcpSocket();
 		virtual ~TcpSocket();
 		virtual void Set(TCPsocket sdl_TCPsocket);
-		bool Valid() const; 
+		bool Valid() const;
 		bool Ready() const;
 		virtual void OnReady(); // Pure virtual
 	protected:
@@ -88,7 +88,7 @@ namespace d2d
 	//|			ServerTcpSocket		   |
 	//\--------------------------------/--------------------------------------
 	class ClientTcpSocket;
-	class ServerTcpSocket : public TcpSocket 
+	class ServerTcpSocket : public TcpSocket
 	{
 	public:
 		//create and open a new socket, with an existing IpAddress object
@@ -109,19 +109,19 @@ namespace d2d
 	class ClientTcpSocket : public TcpSocket
 	{
 	public:
-		ClientTcpSocket(); 
+		ClientTcpSocket();
 
 		// Create the object and connect to a host, in a given port
-		ClientTcpSocket(const std::string& server, Uint16 port); 
+		ClientTcpSocket(const std::string& server, Uint16 port);
 
 		// Make a connection to communicate with a remote host
-		void ConnectToRemoteHost(const IpAddress& remoteIp); 
+		void ConnectToRemoteHost(const IpAddress& remoteIp);
 
 		// Make a connection to communicate with a client
-		void ConnectToRemoteClient(ServerTcpSocket& listenerTcpSocket); 
+		void ConnectToRemoteClient(ServerTcpSocket& listenerTcpSocket);
 
 		void Set(TCPsocket sdl_TCPsocket);
-		IpAddress GetRemoteIpAddress() const; 
+		IpAddress GetRemoteIpAddress() const;
 
 		virtual void OnReady(); // Pure virtual
 

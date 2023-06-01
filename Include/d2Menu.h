@@ -1,8 +1,8 @@
 /**************************************************************************************\
 ** File: d2Menu.h
-** Project: 
+** Project:
 ** Author: David Leksen
-** Date: 
+** Date:
 **
 ** Header file for the Menu class
 **
@@ -43,7 +43,7 @@ namespace d2d
 		d2d::Color m_backgroundColor;
 
 		unsigned m_currentButton;
-		std::queue<unsigned> m_buttonsPressed; 
+		std::queue<unsigned> m_buttonsPressed;
 
 		const b2Vec2 m_buttonOffset{ 0.0f, 0.008f };
 		const b2Vec2 m_buttonSize{ 0.35f, 0.054f };

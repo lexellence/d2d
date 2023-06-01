@@ -1,8 +1,8 @@
 /**************************************************************************************\
 ** File: d2ShapeFactory.h
-** Project: 
+** Project:
 ** Author: David Leksen
-** Date: 
+** Date:
 **
 ** Header file for the ShapeFactory class
 **
@@ -54,8 +54,8 @@ namespace d2d
 	struct Filter
 	{
 	public:
-		Filter(unsigned newCategoryBits = FILTER_DEFAULT_CATEGORY_BITS, 
-			unsigned newMaskBits = FILTER_DEFAULT_MASK_BITS, 
+		Filter(unsigned newCategoryBits = FILTER_DEFAULT_CATEGORY_BITS,
+			unsigned newMaskBits = FILTER_DEFAULT_MASK_BITS,
 			int newGroupIndex = FILTER_DEFAULT_GROUP_INDEX)
 		{
 			filter.categoryBits = newCategoryBits;

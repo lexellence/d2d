@@ -1,8 +1,8 @@
 /**************************************************************************************\
 ** File: d2Resource.h
-** Project: 
+** Project:
 ** Author: David Leksen
-** Date: 
+** Date:
 **
 ** Header file for the Resource class
 **
@@ -83,10 +83,10 @@ namespace d2d
 			}
 			else
 			{
-				// We found an index with the same filename, so increment the   
+				// We found an index with the same filename, so increment the
 				// reference count for the resource that already exists at that index.
 				id = indexIterator->second;
-				SDL_assert(m_resourcePtrList[id] != nullptr);
+				SDL_assert(m_resourcePtrList.at(id) != nullptr);
 				m_resourcePtrList.at(id)->IncrementReferenceCount();
 			}
 			return id;

@@ -1,8 +1,8 @@
 /**************************************************************************************\
 ** File: d2NumberManip.h
-** Project: 
+** Project:
 ** Author: David Leksen
-** Date: 
+** Date:
 **
 ** Header file for number manipulation functions
 **
@@ -97,7 +97,7 @@ namespace d2d
 
 	float GetWrappedFloat(float value, const Range<float>& range);
 	void WrapFloat(float& value, const Range<float>& range);
-	
+
 	float GetWrappedFloat(float value, float modulus);
 	void WrapFloat(float& value, float modulus);
 

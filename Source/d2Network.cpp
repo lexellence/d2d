@@ -4,7 +4,7 @@
 ** Author: David Leksen
 ** Date:
 **
-** Source code file for  
+** Source code file for
 **
 \**************************************************************************************/
 #include "d2pch.h"
@@ -45,29 +45,29 @@ namespace d2d
 	//+--------------------------------\--------------------------------------
 	//|		   NetworkMessage   	   |
 	//\--------------------------------/--------------------------------------
-	NetworkMessage::NetworkMessage() 
+	NetworkMessage::NetworkMessage()
 	{
 		Reset();
 	}
-	void NetworkMessage::Reset() 
+	void NetworkMessage::Reset()
 	{
 		for(int i = 0; i < 256; ++i)
 			m_buffer[i] = 0;
 		m_bufferState = BufferState::EMPTY;
 	}
-	void NetworkMessage::Finish() 
+	void NetworkMessage::Finish()
 	{
 		if(m_bufferState == BufferState::READING)
 			m_bufferState = BufferState::FULL;
 	}
-	int NetworkMessage::NumToLoad() 
+	int NetworkMessage::NumToLoad()
 	{
 		if(m_bufferState == BufferState::EMPTY)
 			return 255;
 		else
 			return 0;
 	}
-	int NetworkMessage::NumToUnload() 
+	int NetworkMessage::NumToUnload()
 	{
 		if(m_bufferState == BufferState::FULL)
 			return strlen(m_buffer) + 1;
@@ -104,9 +104,9 @@ namespace d2d
 			throw NetworkException{ std::string{"SDLNet_ResolveHost: "} + SDLNet_GetError() };
 		}
 	}
-	IpAddress::IpAddress(const std::string& host, Uint16 port) 
+	IpAddress::IpAddress(const std::string& host, Uint16 port)
 	{
-		if(SDLNet_ResolveHost(&m_ip, host.c_str(), port) < 0) 
+		if(SDLNet_ResolveHost(&m_ip, host.c_str(), port) < 0)
 		{
 			m_ip.host = 0;
 			m_ip.port = 0;
@@ -125,11 +125,11 @@ namespace d2d
 	{
 		return m_ip;
 	}
-	Uint32 IpAddress::GetHost() const 
+	Uint32 IpAddress::GetHost() const
 	{
 		return m_ip.host;
 	}
-	Uint16 IpAddress::GetPort() const 
+	Uint16 IpAddress::GetPort() const
 	{
 		return m_ip.port;
 	}
@@ -137,16 +137,16 @@ namespace d2d
 	//+--------------------------------\--------------------------------------
 	//|			  TcpSocket			   |
 	//\--------------------------------/--------------------------------------
-	TcpSocket::TcpSocket() 
+	TcpSocket::TcpSocket()
 		: m_socket{ nullptr },
 		  m_socketSet{ SDLNet_AllocSocketSet(1) }
-	{ 
+	{
 		if(!m_socketSet)
 			throw NetworkException{ std::string{"SDLNet_AllocSocketSet: "} + SDLNet_GetError() };
 	}
-	TcpSocket::~TcpSocket() 
+	TcpSocket::~TcpSocket()
 	{
-		if(m_socket) 
+		if(m_socket)
 		{
 			if(m_socketSet)
 				SDLNet_TCP_DelSocket(m_socketSet, m_socket);
@@ -161,7 +161,7 @@ namespace d2d
 	}
 	void TcpSocket::Set(TCPsocket sdl_TCPsocket)
 	{
-		if(m_socket) 
+		if(m_socket)
 		{
 			SDLNet_TCP_DelSocket(m_socketSet, m_socket);
 			SDLNet_TCP_Close(m_socket);
@@ -178,7 +178,7 @@ namespace d2d
 	{
 		return (m_socket != nullptr);
 	}
-	bool TcpSocket::Ready() const 
+	bool TcpSocket::Ready() const
 	{
 		bool ready{ false };
 		int numready{ SDLNet_CheckSockets(m_socketSet, 0) };
@@ -189,7 +189,7 @@ namespace d2d
 				ready = SDLNet_SocketReady(m_socket);
 		return ready;
 	}
-	void TcpSocket::OnReady() 
+	void TcpSocket::OnReady()
 	{ }
 
 	//+--------------------------------\--------------------------------------
@@ -206,16 +206,16 @@ namespace d2d
 			throw NetworkException{ std::string{"SDLNet_TCP_Open: "} + SDLNet_GetError() };
 		}
 	}
-	ServerTcpSocket::ServerTcpSocket(Uint16 port) 
+	ServerTcpSocket::ServerTcpSocket(Uint16 port)
 	{
 		IpAddress iplistener(port);
-		if(!iplistener.Valid()) 
+		if(!iplistener.Valid())
 			m_socket = nullptr;
-		else 
+		else
 		{
 			IPaddress SDL_IPaddress = iplistener.GetSDL_IPaddress();
 			m_socket = SDLNet_TCP_Open(&SDL_IPaddress);
-			if(!m_socket) 
+			if(!m_socket)
 			{
 				SDLNet_FreeSocketSet(m_socketSet);
 				m_socketSet = nullptr;
@@ -235,21 +235,21 @@ namespace d2d
 		else
 			return false;
 	}
-	void ServerTcpSocket::OnReady() 
+	void ServerTcpSocket::OnReady()
 	{ }
 
 	//+--------------------------------\--------------------------------------
 	//|		   ClientTcpSocket		   |
 	//\--------------------------------/--------------------------------------
-	ClientTcpSocket::ClientTcpSocket() 
+	ClientTcpSocket::ClientTcpSocket()
 	{
 	}
-	ClientTcpSocket::ClientTcpSocket(const std::string& host, Uint16 port) 
+	ClientTcpSocket::ClientTcpSocket(const std::string& host, Uint16 port)
 	{
 		IpAddress remoteIp(host.c_str(), port);
 		if(!remoteIp.Valid())
 			m_socket = nullptr;
-		else 
+		else
 		{
 			TcpSocket();
 			ConnectToRemoteHost(remoteIp);
@@ -302,7 +302,7 @@ namespace d2d
 		{
 			if(SDLNet_TCP_Recv(m_socket, buffer, inData.NumToLoad()) > 0)
 				inData.LoadBytes(buffer, inData.NumToLoad());
-			else 
+			else
 				return false;
 		}
 		inData.Finish();

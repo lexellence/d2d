@@ -7,10 +7,10 @@
 ** Source code file for the Color class
 **
 \**************************************************************************************/
-#include "d2pch.h"
+//#include "d2pch.h"
 #include "d2Color.h"
-#include "d2Utility.h"
-#include "d2NumberManip.h" 
+//#include "d2Utility.h"
+#include "d2NumberManip.h"
 namespace d2d
 {
 	Color::Color()
@@ -34,9 +34,9 @@ namespace d2d
 	}
 	void Color::SetInt(int r, int g, int b, int a)
 	{
-		SetFloat((float)r / 255.0f, 
-				 (float)g / 255.0f, 
-				 (float)b / 255.0f, 
+		SetFloat((float)r / 255.0f,
+				 (float)g / 255.0f,
+				 (float)b / 255.0f,
 				 (float)a / 255.0f);
 	}
 	Color operator+(const Color& left, const Color& right)
@@ -88,7 +88,7 @@ namespace d2d
 	}
 	Color ColorRange::Lerp(float percentMax) const
 	{
-		return 
+		return
 		  { d2d::Lerp(redRange, percentMax),
 			d2d::Lerp(greenRange, percentMax),
 			d2d::Lerp(blueRange, percentMax),

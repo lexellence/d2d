@@ -1,8 +1,8 @@
 /**************************************************************************************\
 ** File: d2Rect.h
-** Project: 
+** Project:
 ** Author: David Leksen
-** Date: 
+** Date:
 **
 ** Header file for the Rect class
 **
@@ -35,4 +35,5 @@ namespace d2d
 		bool Contains(const b2Vec2& point, bool upperBoundInclusive = true) const;
 		void SortBounds();
 	};
+	static const Rect UNIT_RECT{ b2Vec2_zero, { 1.0f, 1.0f } };
 }

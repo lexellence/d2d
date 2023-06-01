@@ -24,21 +24,22 @@
 #define d2Assert SDL_assert
 #define d2AssertParanoid SDL_assert_paranoid
 
+//#define GL_GLEXT_PROTOTYPES       // ???
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_net.h>
 #include <GL/glu.h>
 #include <box2d/box2d.h>
-#include "drawtext.h"
-#include "hjson/hjson.h"
+#include <drawtext.h>
+#include <hjson.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-// #include <boost/log/core.hpp>
-// #include <boost/log/trivial.hpp>
-// #include <boost/log/utility/setup/file.hpp>
-// #include <boost/log/utility/setup/common_attributes.hpp>
+ #include <boost/log/core.hpp>
+ #include <boost/log/trivial.hpp>
+ #include <boost/log/utility/setup/file.hpp>
+ #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <vector>

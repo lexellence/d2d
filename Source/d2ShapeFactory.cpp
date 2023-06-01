@@ -50,7 +50,7 @@ namespace d2d
 							// circle
 							fixtureGroup.isCircle = true;
 							auto const& circleNode{ fixtureGroupNode.second.get_child("circle") };
- 
+
 							float radius{ circleNode.get<float>("<xmlattr>.r") };
 							SDL_assert_release(radius >= 0.0f);
 
@@ -172,7 +172,7 @@ namespace d2d
 
 					for(unsigned i = 0; i < polygon.numVertices; ++i)
 						vertices[i] = b2Mul(localTransform, polygon.vertices[i] * size);
-					
+
 					b2PolygonShape polygonShape;
 					polygonShape.Set(vertices, polygon.numVertices);
 					fixtureDef.shape = &polygonShape;
