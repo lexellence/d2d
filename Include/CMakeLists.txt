@@ -13,5 +13,7 @@ d2ShapeFactory.h
 d2StringManip.h
 d2Timer.h
 d2Utility.h
-d2Window.h)
+d2Window.h
+d2Texture.h
+)
 

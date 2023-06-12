@@ -1,4 +1,4 @@
-target_sources(${PROJECT_NAME} PRIVATE 
+target_sources(${PROJECT_NAME} PRIVATE
 d2pch.cpp
 d2Color.cpp
 d2Hjson.cpp
@@ -13,4 +13,6 @@ d2ShapeFactory.cpp
 d2StringManip.cpp
 d2Timer.cpp
 d2Utility.cpp
-d2Window.cpp)
+d2Window.cpp
+d2Texture.cpp
+)
