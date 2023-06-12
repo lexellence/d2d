@@ -79,5 +79,7 @@ namespace d2d
 		b2Vec2 m_relativePosition;
 		float m_relativeAngle;
 		Color m_tintColor;
+
+		const AnimationFrame& GetCurrentFrame() const;
 	};
 }

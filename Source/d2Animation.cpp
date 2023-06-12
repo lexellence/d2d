@@ -93,64 +93,52 @@ namespace d2d
 	}
 	void Animation::Update(float dt)
 	{
-		if (IsEnabled() &&
-			m_def.m_type != AnimationType::STATIC &&
-			m_currentFrame < m_def.m_frameList.size())
+		if (IsEnabled())
 		{
+			if(m_def.m_type == AnimationType::STATIC)
+				return;
+
 			m_frameTimeAccumulator += dt;
-			if(m_frameTimeAccumulator >= m_def.m_frameList[m_currentFrame].GetFrameTime())
+			if(m_frameTimeAccumulator >= GetCurrentFrame().GetFrameTime())
 			{
 				// Go to next frame
-				m_frameTimeAccumulator -= m_def.m_frameList[m_currentFrame].GetFrameTime();
-				bool reachedEnd{ m_forward && (m_currentFrame == m_def.m_frameList.size() - 1) };
-				bool reachedBeginning{ !m_forward && (m_currentFrame == 0) };
-				bool stillNeedsToChangeFrame{ true };
+				m_frameTimeAccumulator -= GetCurrentFrame().GetFrameTime();
+				m_currentFrame += m_forward ? 1 : -1;
+				bool reachedEnd = m_forward && (m_currentFrame == m_def.m_frameList.size()) ||
+								  !m_forward && (m_currentFrame == -1);
+
+				// Adjust based on animation type
 				switch(m_def.m_type)
 				{
+				default:
 				case AnimationType::SINGLE_PASS:
-					if(reachedEnd || reachedBeginning)
+					if(reachedEnd)
 					{
-						m_enabled = true;
+						Restart();
+						m_enabled = false;
 						return;
 					}
 					break;
 				case AnimationType::LOOP:
-					if(reachedEnd || reachedBeginning)
-						stillNeedsToChangeFrame = false;
 					if(reachedEnd)
-						m_currentFrame = 0;
-					else if(reachedBeginning)
-						m_currentFrame = m_def.m_frameList.size() - 1;
+						m_currentFrame = m_forward ? 0 : m_def.m_frameList.size() - 1;
 					break;
 				case AnimationType::PENDULUM:
-				default:
 					if(reachedEnd)
-						m_forward = false;
-					else if(reachedBeginning)
-						m_forward = true;
+						m_currentFrame += m_forward ? -2 : 2;
 					break;
-				}
-
-				if(stillNeedsToChangeFrame)
-				{
-					// Go to next frame
-					if(m_forward)
-						++m_currentFrame;
-					else
-						--m_currentFrame;
 				}
 			}
 		}
 	}
 	void Animation::Draw(const b2Vec2& entitySize) const
 	{
-		if (IsEnabled() &&
-			m_currentFrame < m_def.m_frameList.size())
+		if (IsEnabled())
 		{
 			Window::PushMatrix();
 			Window::Translate(m_relativePosition);
 			Window::Rotate(m_relativeAngle);
-			m_def.m_frameList[m_currentFrame].Draw(entitySize * m_relativeSize, m_tintColor);
+			GetCurrentFrame().Draw(entitySize * m_relativeSize, m_tintColor);
 			Window::PopMatrix();
 		}
 	}
@@ -172,5 +160,9 @@ namespace d2d
 	void Animation::SetTint(const Color& newTintColor)
 	{
 		m_tintColor = newTintColor;
+	}
+	const AnimationFrame& Animation::GetCurrentFrame() const
+	{
+		return m_def.m_frameList[m_currentFrame];
 	}
 }
