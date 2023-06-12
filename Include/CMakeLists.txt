@@ -1,5 +1,6 @@
 target_sources(${PROJECT_NAME} PRIVATE
 d2pch.h
+d2d.h
 d2Color.h
 d2Hjson.h
 d2Main.h
