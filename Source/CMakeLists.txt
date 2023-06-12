@@ -16,4 +16,5 @@ d2Utility.cpp
 d2Window.cpp
 d2Texture.cpp
 d2Text.cpp
+d2Animation.cpp
 )

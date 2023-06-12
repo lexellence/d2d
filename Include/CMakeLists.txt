@@ -17,5 +17,6 @@ d2Utility.h
 d2Window.h
 d2Texture.h
 d2Text.h
+d2Animation.h
 )
 

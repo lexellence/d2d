@@ -2,7 +2,7 @@
 ** File: d2d.h
 ** Project: Space
 ** Author: David Leksen
-** Date: 
+** Date:
 **
 ** Header file to include d2d in your project (not used internally by d2d)
 **
@@ -24,6 +24,8 @@
 #include "d2Utility.h"
 #include "d2Window.h"
 #include "d2Network.h"
-
+#include "d2Texture.h"
+#include "d2Text.h"
+#include "d2Animation.h"
 
 

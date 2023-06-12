@@ -4,7 +4,7 @@
 ** Author: David Leksen
 ** Date:
 **
-** Header file for the Window class
+** Header file for Window and related classes
 **
 \**************************************************************************************/
 #pragma once
@@ -15,79 +15,7 @@
 namespace d2d
 {
 	//+------------------\----------------------------------------
-	//|	   Animations	 |
-	//\------------------/----------------------------------------
-	class AnimationFrame
-	{
-	public:
-		AnimationFrame(const d2d::Texture& texture,
-			float frameTime = 0.0f, const d2d::Color& tintColor = d2d::WHITE_OPAQUE,
-			const b2Vec2& relativeSize = { 1.0f, 1.0f },
-			const b2Vec2& relativePosition = b2Vec2_zero, float relativeAngle = 0.0f);
-		void Draw(const b2Vec2& animationSize, const d2d::Color& animationColor) const;
-		float GetFrameTime() const;
-
-	private:
-		d2d::Texture const* m_texturePtr{ nullptr };
-		float m_frameTime;
-		d2d::Color m_tintColor;
-		b2Vec2 m_relativeSize;
-		b2Vec2 m_relativePosition;
-		float m_relativeAngle;
-		};
-	enum class AnimationType
-	{
-		STATIC, SINGLE_PASS, LOOP, PENDULUM
-	};
-	class AnimationDef
-	{
-	public:
-
-		AnimationDef();
-		AnimationDef(const AnimationFrame& frame);
-		AnimationDef(const std::vector<AnimationFrame>& frameList,
-			AnimationType type = AnimationType::STATIC,
-			unsigned firstFrame = 0u, bool startForward = true);
-		friend class Animation;
-
-	private:
-		std::vector<AnimationFrame> m_frameList;
-		AnimationType m_type { AnimationType::STATIC };
-		unsigned m_firstFrame{ 0 };
-		bool m_startForward{ true };
-	};
-	class Animation
-	{
-	public:
-		void Init(const AnimationDef& animationDef,
-			const b2Vec2& relativeSize = { 1.0f, 1.0f },
-			const b2Vec2& relativePosition = b2Vec2_zero, float relativeAngle = 0.0f,
-			const d2d::Color& tint = d2d::WHITE_OPAQUE);
-		void FlipX();
-		void FlipY();
-		void Update(float dt);
-		void Draw(const b2Vec2& entitySize) const;
-		bool IsEnabled() const;
-		bool IsAnimated() const;
-		void Restart();
-		void SetTint(const d2d::Color& tint = d2d::WHITE_OPAQUE);
-
-	private:
-		AnimationDef m_def;
-		bool m_enabled{ false };
-		unsigned m_currentFrame;
-		bool m_forward;
-		float m_frameTimeAccumulator;
-		bool m_flipX;
-		bool m_flipY;
-		b2Vec2 m_relativeSize;
-		b2Vec2 m_relativePosition;
-		float m_relativeAngle;
-		d2d::Color m_tintColor;
-	};
-
-	//+------------------\----------------------------------------
-	//|	    Window	     |
+	//|	 OpenGLSettings	 |
 	//\------------------/----------------------------------------
 	struct OpenGLSettings
 	{
@@ -127,6 +55,10 @@ namespace d2d
 		bool pointSmoothing{ false };	//Implementation dependent
 		bool lineSmoothing{ false };	//Implementation dependent?
 	};
+
+	//+------------------\----------------------------------------
+	//|	   WindowDef	 |
+	//\------------------/----------------------------------------
 	struct WindowDef
 	{
 		std::string title;
@@ -143,6 +75,10 @@ namespace d2d
 		int imageExtensions;
 		OpenGLSettings gl;
 	};
+
+	//+------------------\----------------------------------------
+	//|	    Window	     |
+	//\------------------/----------------------------------------
 	namespace Window
 	{
 		// OpenGL point sizes
