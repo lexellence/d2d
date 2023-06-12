@@ -10,11 +10,9 @@
 #include "d2pch.h"
 #include "d2Window.h"
 #include "d2Utility.h"
-#include "d2Resource.h"
 #include "d2Timer.h"
 #include "d2NumberManip.h"
 //#include "d2StringManip.h"
-#include "d2Rect.h"
 #include <optional>
 namespace d2d
 {
@@ -182,13 +180,10 @@ namespace d2d
 	}
 	namespace
 	{
-		class FontResource;
-
 		WindowDef m_windowDef;
 		bool m_sdlImageInitialized{ false };
 		SDL_Window* m_windowPtr{ nullptr };
 		SDL_GLContext m_glContext;
-		ResourceManager<FontResource> m_fontManager;
 		bool m_texturesEnabled;
 		bool m_blendingEnabled;
 		bool m_textureBinded;
@@ -201,46 +196,7 @@ namespace d2d
 		float m_fpsUpdateAccumulator;
 		unsigned int m_frames;
 		float m_fps;
-
-        class FontResource : public Resource
-        {
-        public:
-            static const int dtxFontSize{192};
-
-        public:
-            // filePaths[0]: path of the font file
-            explicit FontResource(const std::vector<std::string> &filePaths)
-                : Resource(filePaths)
-            {
-                if (filePaths.size() < 1)
-                    throw InitException{"FontResource requires one filePath"s};
-
-                m_dtxFontPtr = dtx_open_font(filePaths[0].c_str(), dtxFontSize);
-                if (!m_dtxFontPtr)
-                    throw InitException{"Failed to open font: "s + filePaths[0]};
-            }
-            ~FontResource()
-            {
-                if (m_dtxFontPtr)
-                    dtx_close_font(m_dtxFontPtr);
-            }
-            dtx_font *GetDTXFontPtr() const { return m_dtxFontPtr; }
-
-        private:
-            struct dtx_font *m_dtxFontPtr{nullptr};
-        };
-    } // namespace
-
-    //+--------------------------\--------------------------------
-    //|      FontReference       |
-    //\--------------------------/--------------------------------
-    FontReference::FontReference(const std::string &fontPath)
-        : ResourceReference(m_fontManager.Load({fontPath}))
-    {}
-    FontReference::~FontReference()
-    {
-        m_fontManager.Unload(GetID());
-    }
+	} // namespace
 
     //+--------------------------\--------------------------------
     //|          Window          |
@@ -627,7 +583,7 @@ namespace d2d
 				m_boundFontID = font.GetID();
 
 				//dtx_use_font(m_fontManager.GetResource(fontID).GetDTXFontPtr(), m_bindedDTXFontSize);
-				dtx_use_font(m_fontManager.GetResource(font.GetID()).GetDTXFontPtr(), FontResource::dtxFontSize);
+				dtx_use_font(font.GetDTXFontPtr(), DTX_FONT_SIZE);
 			}
 			//if (m_bindedDTXFontSize < 0)
 			//	return;
@@ -639,7 +595,7 @@ namespace d2d
 			//float scale{ fontSize / (float)m_bindedDTXFontSize };
 			//b2Vec2 resolution{ GetScreenResolution() };
 			//size *= 0.5f * (resolution.x + resolution.y);
-			float scale{ size / (float)FontResource::dtxFontSize };
+			float scale{ size / (float)DTX_FONT_SIZE };
 			glScalef(scale, scale, 1.0f);
 			// ***********************************************************************************************************
 			// ***********************************************************************************************************

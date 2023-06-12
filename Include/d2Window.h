@@ -8,28 +8,12 @@
 **
 \**************************************************************************************/
 #pragma once
-#include "d2Resource.h"
 #include "d2Color.h"
 #include "d2Rect.h"
 #include "d2Texture.h"
+#include "d2Text.h"
 namespace d2d
 {
-	//+------------------\----------------------------------------
-	//|	     Text 		 |
-	//\------------------/----------------------------------------
-	class FontReference : public ResourceReference
-	{
-	public:
-		FontReference(const std::string& fontPath);
-		virtual ~FontReference();
-	};
-	struct TextStyle
-	{
-		FontReference& font;
-		Color color;
-		float size;
-	};
-
 	//+------------------\----------------------------------------
 	//|	   Animations	 |
 	//\------------------/----------------------------------------

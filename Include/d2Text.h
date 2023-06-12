@@ -1,0 +1,30 @@
+/**************************************************************************************\
+** File: d2Text.h
+** Project:
+** Author: David Leksen
+** Date:
+**
+** Header file for classes related to text drawing
+**
+\**************************************************************************************/
+#pragma once
+#include "d2Color.h"
+#include "d2Resource.h"
+namespace d2d
+{
+	const int DTX_FONT_SIZE = 192;
+	class FontReference : public ResourceReference
+	{
+	public:
+		FontReference(const std::string& fontPath);
+		virtual ~FontReference();
+		dtx_font* GetDTXFontPtr() const;
+	};
+	struct TextStyle
+	{
+		FontReference& font;
+		Color color;
+		float size;
+	};
+}
+
