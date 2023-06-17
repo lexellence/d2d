@@ -27,19 +27,19 @@ const d2LogSeverity d2LogSeverityWarning{ 3 };
 const d2LogSeverity d2LogSeverityError{ 4 };
 const d2LogSeverity d2LogSeverityFatal{ 5 };
 
-#define d2LogTrace		BOOST_LOG_TRIVIAL(trace)
-#define d2LogDebug		BOOST_LOG_TRIVIAL(debug)
-#define d2LogInfo		BOOST_LOG_TRIVIAL(info)
-#define d2LogWarning	BOOST_LOG_TRIVIAL(warning)
-#define d2LogError		BOOST_LOG_TRIVIAL(error)
-#define d2LogFatal		BOOST_LOG_TRIVIAL(fatal)
+//#define d2LogTrace		BOOST_LOG_TRIVIAL(trace)
+//#define d2LogDebug		BOOST_LOG_TRIVIAL(debug)
+//#define d2LogInfo		BOOST_LOG_TRIVIAL(info)
+//#define d2LogWarning	BOOST_LOG_TRIVIAL(warning)
+//#define d2LogError		BOOST_LOG_TRIVIAL(error)
+//#define d2LogFatal		BOOST_LOG_TRIVIAL(fatal)
 
-//#define d2LogTrace		std::cout
-//#define d2LogDebug		std::cout
-//#define d2LogInfo		std::cout
-//#define d2LogWarning	std::cout
-//#define d2LogError		std::cout
-//#define d2LogFatal		std::cout
+#define d2LogTrace		std::cout
+#define d2LogDebug		std::cout
+#define d2LogInfo		std::cout
+#define d2LogWarning	std::cout
+#define d2LogError		std::cout
+#define d2LogFatal		std::cout
 
 // Physics operators
 const b2Vec2 operator*(b2Vec2 v1, const b2Vec2& v2);

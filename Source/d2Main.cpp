@@ -70,17 +70,17 @@ namespace d2d
 		atexit(d2d::Shutdown);
 
 		// Start logging
-		boost::log::register_simple_formatter_factory<d2LogSeverity, char>("Severity");
-		boost::log::add_file_log
-		(
-			boost::log::keywords::file_name = logOutputFilePath,
-			boost::log::keywords::format = "[%Severity%] %Message%"
-		);
-		boost::log::core::get()->set_filter
-		(
-			boost::log::trivial::severity >= minSeverityToLog
-		);
-		boost::log::add_common_attributes();
+		//boost::log::register_simple_formatter_factory<d2LogSeverity, char>("Severity");
+		//boost::log::add_file_log
+		//(
+		//	boost::log::keywords::file_name = logOutputFilePath,
+		//	boost::log::keywords::format = "[%Severity%] %Message%"
+		//);
+		//boost::log::core::get()->set_filter
+		//(
+		//	boost::log::trivial::severity >= minSeverityToLog
+		//);
+		//boost::log::add_common_attributes();
 
 		// SDL
 		if(SDL_Init(SDL_INIT_EVERYTHING) != 0)
