@@ -7,6 +7,7 @@
 ** Source code file for classes related to text drawing
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Text.h"
 namespace d2d
 {

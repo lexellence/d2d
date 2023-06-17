@@ -7,6 +7,7 @@
 ** Source code file for Animation and related classes
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Animation.h"
 #include "d2Window.h"
 namespace d2d

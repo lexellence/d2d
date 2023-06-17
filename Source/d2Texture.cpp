@@ -7,6 +7,7 @@
 ** Source code file for the Window class
 **
 \**************************************************************************************/
+#include "d2pch.h"
 #include "d2Texture.h"
 #include "d2Window.h"
 namespace d2d

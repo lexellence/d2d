@@ -44,19 +44,30 @@
     <IncludePath>$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
     <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
+    <PublicIncludeDirectories>
+    </PublicIncludeDirectories>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(ProjectDir)..\Lib\$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
     <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <AllProjectIncludesArePublic>false</AllProjectIncludesArePublic>
+    <PublicIncludeDirectories>
+    </PublicIncludeDirectories>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <EnableParallelCodeGeneration>
       </EnableParallelCodeGeneration>
-      <AdditionalIncludeDirectories>C:\Development\Libraries\box2d-2.4.1\include;C:\boost\boost_1_79_0;C:\Development\Projects\d2d\repo\Include;C:\Development\Libraries\libdrawtext\include;C:\Development\Libraries\hjson;C:\Development\Libraries\SDL2_net-2.0.1\include;C:\Development\Libraries\SDL2-2.0.22\include;C:\Development\Libraries\SDL2_image-2.0.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\boost\boost_1_82_0;$(ProjectDir)..\Include;$(ProjectDir)..\..\..\libs\SDL2\include;$(ProjectDir)..\..\..\libs\freetype-2.13.0\include;$(ProjectDir)..\..\..\libs\box2d-2.4.1\include;$(ProjectDir)..\extern\hjson-cpp-2.3;$(ProjectDir)..\extern\libdrawtext-0.6;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>d2pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName)_$(PlatformTarget).pch</PrecompiledHeaderOutputFile>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>
@@ -67,10 +78,15 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <EnableParallelCodeGeneration>
       </EnableParallelCodeGeneration>
-      <AdditionalIncludeDirectories>C:\Development\Libraries\box2d-2.4.1\include;C:\boost\boost_1_79_0;C:\Development\Projects\d2d\repo\Include;C:\Development\Libraries\libdrawtext\include;C:\Development\Libraries\hjson;C:\Development\Libraries\SDL2_net-2.0.1\include;C:\Development\Libraries\SDL2-2.0.22\include;C:\Development\Libraries\SDL2_image-2.0.5\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\boost\boost_1_82_0;$(ProjectDir)..\Include;$(ProjectDir)..\..\..\libs\SDL2\include;$(ProjectDir)..\..\..\libs\freetype-2.13.0\include;$(ProjectDir)..\..\..\libs\box2d-2.4.1\include;$(ProjectDir)..\extern\hjson-cpp-2.3;$(ProjectDir)..\extern\libdrawtext-0.6;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>d2pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName)_$(PlatformTarget).pch</PrecompiledHeaderOutputFile>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>
@@ -80,23 +96,32 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Source\d2Animation.cpp" />
     <ClCompile Include="..\Source\d2Color.cpp" />
     <ClCompile Include="..\Source\d2Hjson.cpp" />
     <ClCompile Include="..\Source\d2Main.cpp" />
     <ClCompile Include="..\Source\d2Menu.cpp" />
     <ClCompile Include="..\Source\d2Network.cpp" />
     <ClCompile Include="..\Source\d2NumberManip.cpp" />
-    <ClCompile Include="..\Source\d2pch.cpp" />
+    <ClCompile Include="..\Source\d2pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">d2pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">d2pch.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="..\Source\d2Random.cpp" />
     <ClCompile Include="..\Source\d2Rect.cpp" />
     <ClCompile Include="..\Source\d2Resource.cpp" />
     <ClCompile Include="..\Source\d2ShapeFactory.cpp" />
     <ClCompile Include="..\Source\d2StringManip.cpp" />
+    <ClCompile Include="..\Source\d2Text.cpp" />
+    <ClCompile Include="..\Source\d2Texture.cpp" />
     <ClCompile Include="..\Source\d2Timer.cpp" />
     <ClCompile Include="..\Source\d2Utility.cpp" />
     <ClCompile Include="..\Source\d2Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Include\d2Animation.h" />
     <ClInclude Include="..\Include\d2Color.h" />
     <ClInclude Include="..\Include\d2d.h" />
     <ClInclude Include="..\Include\d2Hjson.h" />
@@ -111,6 +136,8 @@
     <ClInclude Include="..\Include\d2Resource.h" />
     <ClInclude Include="..\Include\d2ShapeFactory.h" />
     <ClInclude Include="..\Include\d2StringManip.h" />
+    <ClInclude Include="..\Include\d2Text.h" />
+    <ClInclude Include="..\Include\d2Texture.h" />
     <ClInclude Include="..\Include\d2Timer.h" />
     <ClInclude Include="..\Include\d2Utility.h" />
     <ClInclude Include="..\Include\d2Window.h" />

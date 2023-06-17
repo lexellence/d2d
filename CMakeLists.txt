@@ -26,9 +26,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC Boost::log Boost::log_setup)
 target_link_libraries(${PROJECT_NAME} PUBLIC SDL2 SDL2_image SDL2_net box2d GL GLU freetype drawtext)
 
 # Libraries included with project
-# target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/lib/libdrawtext-0.6)
+# target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/extern/libdrawtext-0.6/linux-x64)
 # target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/lib/libdrawtext-0.6/libdrawtext.a)
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/lib/hjson-cpp-2.3/)
+target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/extern/hjson-cpp-2.3/linux-x64)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/lib/hjson-cpp-2.3/libhjson.a)
 
 target_compile_features(d2d PUBLIC cxx_std_20)
