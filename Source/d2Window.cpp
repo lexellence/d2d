@@ -446,10 +446,10 @@ namespace d2d
 			float fontHeight;
 			{
 				float lineHeight{ dtx_line_height() };
-				float fontHeightToLineHeightRatio{ 0.6f };
+				float fontHeightToLineHeightRatio{ FONT_HEIGHT_TO_LINE_HEIGHT_RATIO };
 				fontHeight = fontHeightToLineHeightRatio * lineHeight;
 			}
-			float fontPadding{ 0.0f };
+			float fontPadding{ FONT_PADDING };
 			struct dtx_box stringDimensions;
 			dtx_string_box(text.c_str(), &stringDimensions);
 			b2Vec2 translation;
