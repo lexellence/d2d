@@ -35,6 +35,7 @@ namespace d2d
 	// Angle unit conversion
 	float GetDegreesFromRadians(float radians);
 	float GetRadiansFromDegrees(float degrees);
+	b2Vec2 GetUnitVec2FromAngle(float radians);
 
 	// Interpolation
 	template <typename T> T Lerp(const T& a, const T& b, float percentB)

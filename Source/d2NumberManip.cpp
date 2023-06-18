@@ -23,6 +23,10 @@ namespace d2d
 	{
 		return degrees * RADIANS_PER_DEGREE;
 	}
+	b2Vec2 GetUnitVec2FromAngle(float radians)
+	{
+		return { cosf(radians), sinf(radians) };
+	}
 
 	//+-------------\---------------------------------------------
 	//|	 Wrapping   |
