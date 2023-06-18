@@ -96,9 +96,9 @@ namespace d2d
                 int x = m_windowDef.position.at(0);
                 int y = m_windowDef.position.at(1);
                 if(m_windowDef.fullScreen)
-                    windowFlags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+                    windowFlags |= m_windowDef.gl.fullscreenModeFlag;
                 else
-                    windowFlags |= SDL_WINDOW_RESIZABLE;
+                    windowFlags |= m_windowDef.gl.windowedModeFlag;
 
 				SDL_ClearError();
 				m_windowPtr = SDL_CreateWindow(m_windowDef.title.c_str(), x, y, width, height, windowFlags);
@@ -198,6 +198,10 @@ namespace d2d
 		const WindowDef& GetWindowDef()
 		{
 			return m_windowDef;
+		}
+		SDL_Window* GetSDLWindowPtr()
+		{
+			return m_windowPtr;
 		}
 
 		//+-------------\---------------------------------------------
@@ -525,5 +529,19 @@ namespace d2d
             }
             glEnd();
         }
+		void ShowSimpleMessageBox(MessageBoxType type, const std::string& title, const std::string& message)
+		{
+			if(m_windowDef.fullScreen)
+			{
+				SDL_SetWindowFullscreen(m_windowPtr, 0);
+				SDL_GL_SwapWindow(m_windowPtr);
+			}
+			SDL_ShowSimpleMessageBox((Uint32)type, title.c_str(), message.c_str(), m_windowPtr);
+			if(m_windowDef.fullScreen)
+			{
+				SDL_SetWindowFullscreen(m_windowPtr, m_windowDef.gl.fullscreenModeFlag);
+				SDL_GL_SwapWindow(m_windowPtr);
+			}
+		}
     } // namespace Window
 } // namespace d2d
