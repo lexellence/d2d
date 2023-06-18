@@ -414,17 +414,20 @@ namespace d2d
 				glVertex2f(vertices[i].x, vertices[i].y);
 			glEnd();
 		}
-		void DrawString(const std::string& text, Alignment alignment, float size, const FontReference& font)
+		void DrawString(const std::string& text, Alignment alignment, float size, const FontReference* fontPtr)
 		{
-			if (!m_fontBinded || m_boundFontID != font.GetID())
+			if(!fontPtr)
+				return;
+
+			if (!m_fontBinded || m_boundFontID != fontPtr->GetID())
 			{
 				// Find the loaded font with matching id, and enable it.
 				m_fontBinded = true;
 				//m_bindedDTXFontSize = FontResource::dtxFontSize;
-				m_boundFontID = font.GetID();
+				m_boundFontID = fontPtr->GetID();
 
 				//dtx_use_font(m_fontManager.GetResource(fontID).GetDTXFontPtr(), m_bindedDTXFontSize);
-				dtx_use_font(font.GetDTXFontPtr(), DTX_FONT_SIZE);
+				dtx_use_font(fontPtr->GetDTXFontPtr(), DTX_FONT_SIZE);
 			}
 			//if (m_bindedDTXFontSize < 0)
 			//	return;

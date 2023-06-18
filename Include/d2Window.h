@@ -144,7 +144,7 @@ namespace d2d
 		void DrawRect(const Rect& drawRect, bool fill=false);
 		void DrawLine(const b2Vec2& p1, const b2Vec2& p2);
 		void DrawLineStrip(const b2Vec2* vertices, unsigned vertexCount);
-		void DrawString(const std::string& text, Alignment alignment, float size, const FontReference& font);
+		void DrawString(const std::string& text, Alignment alignment, float size, const FontReference* fontPtr);
 //        void DrawSprite(GLuint glTextureID, const b2Vec2& lowerLeftTextureCoord, const b2Vec2& upperRightTextureCoord, const b2Vec2& size);
 //        void DrawSpriteInRect(GLuint glTextureID, const b2Vec2& lowerLeftTextureCoord, const b2Vec2& upperRightTextureCoord, const Rect& drawRect);
         void DrawSprite(const Texture& texture, const b2Vec2& size);

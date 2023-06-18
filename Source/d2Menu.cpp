@@ -15,25 +15,62 @@
 #include "d2Rect.h"
 namespace d2d
 {
-	Menu::Menu(const std::vector<std::string>& buttonNames, const TextStyle& buttonTextStyle,
-		const std::string& title, const TextStyle& titleTextStyle,
-		const Color& buttonColor, const Color& buttonHighlightColor, const Color& buttonBorderColor, const Color& backgroundColor)
-	: m_buttonNames{ buttonNames },
-		m_buttonTextStyle{ buttonTextStyle },
-		m_titleText{ title },
-		m_titleStyle{ titleTextStyle },
-		m_buttonColor{ buttonColor },
-		m_buttonHighlightColor{ buttonHighlightColor },
-		m_buttonBorderColor{ buttonBorderColor },
-		m_backgroundColor{ backgroundColor }
-	{
-		Init();
-	}
 	void Menu::Init()
 	{
 		m_currentButton = 0;
 		while(!m_buttonsPressed.empty())
 			m_buttonsPressed.pop();
+	}
+	void Menu::AddButton(const MenuButton& button)
+	{
+		m_buttonList.push_back(button);
+	}
+	void Menu::RemoveAllButtons()
+	{
+		m_buttonList.clear();
+	}
+	void Menu::RemoveButton(const std::string& label)
+	{
+		for(auto it = m_buttonList.begin(); it != m_buttonList.end(); it++)
+			if(it->label == label)
+			{
+				m_buttonList.erase(it);
+				return;
+			}
+	}
+	void Menu::ReplaceButton(const std::string& label, const MenuButton& newButton)
+	{
+		for(auto it = m_buttonList.begin(); it != m_buttonList.end(); it++)
+			if(it->label == label)
+			{
+				(*it) = newButton;
+				return;
+			}
+	}
+	void Menu::SetButtons(const std::vector<MenuButton>& buttonList)
+	{
+		m_buttonList = buttonList;
+	}
+	void Menu::SetTitle(const std::string& title)
+	{
+		m_title = title;
+	}
+	void Menu::SetTitleStyle(const TextStyle& style)
+	{
+		m_titleStyle = style;
+	}
+	void Menu::SetBackgroundColor(const d2d::Color& color)
+	{
+		m_backgroundColor = color;
+	}
+	void Menu::Set(const std::string& title, const TextStyle& titleStyle,
+		const d2d::Color& backgroundColor,
+		const std::vector<MenuButton> buttonList)
+	{
+		SetTitle(title);
+		SetTitleStyle(titleStyle);
+		SetBackgroundColor(backgroundColor);
+		SetButtons(buttonList);
 	}
 	void Menu::ProcessEvent(const SDL_Event& event)
 	{
@@ -73,7 +110,7 @@ namespace d2d
 			break;
 		case SDL_MOUSEMOTION:
 		case SDL_MOUSEBUTTONDOWN:
-			for(size_t i = 0u; i < m_buttonNames.size(); ++i)
+			for(unsigned i = 0; i < m_buttonList.size(); ++i)
 			{
 				d2d::Rect buttonRect;
 				GetButtonRect(i, buttonRect);
@@ -100,25 +137,26 @@ namespace d2d
 	}
 	void Menu::SelectNext()
 	{
-		if(m_currentButton < m_buttonNames.size() - 1)
+		if(m_currentButton < m_buttonList.size() - 1)
 			++m_currentButton;
 	}
 	void Menu::PressSelected()
 	{
-		m_buttonsPressed.push(m_currentButton);
+		if(m_currentButton < m_buttonList.size())
+			m_buttonsPressed.push(m_currentButton);
 	}
-	bool Menu::PollPressedButton(std::string& buttonText)
+	bool Menu::PollPressedButton(std::string& labelOut)
 	{
 		if(m_buttonsPressed.empty())
 			return false;
 		else
 		{
-			buttonText = m_buttonNames[m_buttonsPressed.front()];
+			labelOut = m_buttonList[m_buttonsPressed.front()].label;
 			m_buttonsPressed.pop();
 			return true;
 		}
 	}
-	void Menu::Draw()
+	void Menu::Draw() const
 	{
 		// Set camera to screen resolution
 		b2Vec2 resolution{ d2d::Window::GetScreenResolution() };
@@ -132,7 +170,7 @@ namespace d2d
 
 		// Draw menu buttons
 		b2Vec2 titleCenter;
-		for(unsigned i = 0; i < m_buttonNames.size(); ++i)
+		for(unsigned i = 0; i < m_buttonList.size(); ++i)
 		{
 			// Draw button with optional highlighting
 			d2d::Rect buttonRect;
@@ -141,7 +179,7 @@ namespace d2d
 			buttonRect.upperBound = { buttonRect.upperBound.x * resolution.x, buttonRect.upperBound.y * resolution.y };
 			if(i == m_currentButton)
 			{
-				d2d::Window::SetColor(m_buttonHighlightColor);
+				d2d::Window::SetColor(m_buttonList[i].highlightColor);
 				d2d::Window::DrawRect(buttonRect, true);
 			}
 			d2d::Window::SetColor({ 0.5f, 0.5f, 0.5f, 0.5f });
@@ -153,30 +191,28 @@ namespace d2d
 			buttonTextCenter = { buttonTextCenter.x * resolution.x, buttonTextCenter.y * resolution.y };
 			d2d::Window::PushMatrix();
 			d2d::Window::Translate(buttonTextCenter);
-			d2d::Window::SetColor(m_buttonTextStyle.color);
-			d2d::Window::DrawString(m_buttonNames[i], d2d::Alignment::CENTERED, m_buttonTextStyle.size * resolution.y, m_buttonTextStyle.font);
+			d2d::Window::SetColor(m_buttonList[i].textStyle.color);
+			d2d::Window::DrawString(m_buttonList[i].label, d2d::Alignment::CENTERED,
+				m_buttonList[i].textStyle.size * resolution.y, m_buttonList[i].textStyle.fontPtr);
 			d2d::Window::PopMatrix();
 
 			// Save point half-way between first button text and top of screen for title drawing
 			if(i == 0)
-				titleCenter.Set( buttonTextCenter.x, (buttonTextCenter.y + resolution.y) / 2.0f );
+				titleCenter.Set(buttonTextCenter.x, (buttonTextCenter.y + resolution.y) / 2.0f);
 		}
 
 		// Draw title
 		d2d::Window::PushMatrix();
 		d2d::Window::Translate(titleCenter);
 		d2d::Window::SetColor(m_titleStyle.color);
-		d2d::Window::DrawString(m_titleText, d2d::Alignment::CENTERED, m_titleStyle.size * resolution.y, m_titleStyle.font);
+		d2d::Window::DrawString(m_title, d2d::Alignment::CENTERED, m_titleStyle.size * resolution.y, m_titleStyle.fontPtr);
 		d2d::Window::PopMatrix();
 	}
 	void Menu::GetButtonTextCenter(unsigned button, b2Vec2& buttonTextCenter) const
 	{
-		if(m_buttonNames.empty())
-			return;
-
-		int referenceButton{ (int)m_buttonNames.size() / 2 };
+		int referenceButton{ (int)m_buttonList.size() / 2 };
 		float referenceButtonY;
-		if(m_buttonNames.size() % 2)
+		if(m_buttonList.size() % 2)
 		{
 			// If number of buttons is odd, reference button is in the middle
 			referenceButtonY = 0.5f;
@@ -184,10 +220,10 @@ namespace d2d
 		else
 		{
 			// Otherwise, reference button is just below the middle.
-			referenceButtonY = 0.5f - 0.5f * m_buttonGap - 0.5f * m_buttonSize.y;
+			referenceButtonY = 0.5f - 0.5f * MENU_BUTTON_GAP - 0.5f * MENU_BUTTON_SIZE.y;
 		}
 		int numButtonsBelow{ (int)button - referenceButton };
-		float buttonSpacing{ m_buttonSize.y + m_buttonGap };
+		float buttonSpacing{ MENU_BUTTON_SIZE.y + MENU_BUTTON_GAP };
 		float distanceBelowReference{ (float)numButtonsBelow * buttonSpacing };
 		buttonTextCenter.Set(0.5f, referenceButtonY - distanceBelowReference);
 	}
@@ -195,7 +231,7 @@ namespace d2d
 	{
 		b2Vec2 buttonTextCenter;
 		GetButtonTextCenter(button, buttonTextCenter);
-		buttonRect.SetCenter(buttonTextCenter + m_buttonOffset, m_buttonSize);
+		buttonRect.SetCenter(buttonTextCenter + MENU_BUTTON_OFFSET, MENU_BUTTON_SIZE);
 	}
 }
 
