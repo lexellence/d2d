@@ -91,17 +91,14 @@ namespace d2d
             // Create window
             {
                 Uint32 windowFlags{ SDL_WINDOW_OPENGL };
-                int width = m_windowDef.size.at(0);
-                int height = m_windowDef.size.at(1);
-                int x = m_windowDef.position.at(0);
-                int y = m_windowDef.position.at(1);
                 if(m_windowDef.fullScreen)
                     windowFlags |= m_windowDef.gl.fullscreenModeFlag;
                 else
                     windowFlags |= m_windowDef.gl.windowedModeFlag;
 
 				SDL_ClearError();
-				m_windowPtr = SDL_CreateWindow(m_windowDef.title.c_str(), x, y, width, height, windowFlags);
+				m_windowPtr = SDL_CreateWindow(m_windowDef.title.c_str(), 
+					m_windowDef.x, m_windowDef.y, m_windowDef.width, m_windowDef.height, windowFlags);
 				if(!m_windowPtr)
 					throw InitException{ std::string{"SDL_CreateWindow failed: "} +SDL_GetError() };
 			}

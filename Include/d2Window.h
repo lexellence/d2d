@@ -66,8 +66,8 @@ namespace d2d
 	{
 		std::string title;
 		bool fullScreen;
-		std::array<int, 2> position;
-		std::array<int, 2> size;
+		int x, y;
+		int width, height;
 		bool vsync;
 		bool vsyncAllowLateSwaps;
 		bool doubleBuffer;
