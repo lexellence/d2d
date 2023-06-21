@@ -204,6 +204,12 @@ namespace d2d
 		//+-------------\---------------------------------------------
 		//|	Modifiers	|
 		//\-------------/---------------------------------------------
+		void Resize(int width, int height)
+		{
+			if(height <= 0)   
+				height = 1;
+			glViewport(0, 0, (GLsizei)width, (GLsizei)height);
+		}
 		void SetClearColor(const Color& newColor)
 		{
 			glClearColor(newColor.red, newColor.green, newColor.blue, newColor.alpha);
@@ -219,7 +225,7 @@ namespace d2d
 			else
 				m_fpsUpdateInterval = interval;
 		}
-		void SetCameraRect(const Rect & rect)
+		void SetCameraRect(const Rect& rect)
 		{
 			// Setup a 2D viewport based on camera dimensions
 			glMatrixMode(GL_PROJECTION);

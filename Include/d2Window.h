@@ -117,6 +117,7 @@ namespace d2d
 		const WindowDef& GetWindowDef();
 
 		// Modifiers
+		void Resize(int width, int height);
 		void SetClearColor(const Color& newColor);
 		void SetShowCursor(bool enabled);
 		void SetFPSInterval(float interval);
