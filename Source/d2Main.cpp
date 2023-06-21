@@ -115,7 +115,7 @@ namespace d2d
 			std::string message{ "Could not open controller map database file: "
 				+ gamepadSettings.controllerDBFilePath + ": " + SDL_GetError() };
 			d2LogError << message;
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", message.c_str(), nullptr);
+			d2d::Window::ShowSimpleMessageBox(d2d::MessageBoxType::D2D_WARN, "Error"s, message);
 		}
 
 		// Open controllers
