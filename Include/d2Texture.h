@@ -18,6 +18,13 @@ namespace d2d
 		b2Vec2 upperRight;
 		b2Vec2 upperLeft;
 	};
+	static const TextureCoordinates NORMAL_FULL_TEXTURE_COORD
+	{
+		.lowerLeft{ 0.0f, 1.0f },
+		.lowerRight{ 1.0f, 1.0f },
+		.upperRight{ 1.0f, 0.0f },
+		.upperLeft{ 0.0f, 0.0f }
+	};
 
 	class TextureAtlas : public ResourceReference
 	{
@@ -58,4 +65,6 @@ namespace d2d
 		virtual const TextureCoordinates& GetTextureCoordinates() const;
 		float GetWidthToHeightRatio() const;
 	};
+
+	void GenerateGLTexture(SDL_Surface& surface, GLuint& texID, float& widthToHeightRatio, bool reversedSourcePixelFormat = false);
 }

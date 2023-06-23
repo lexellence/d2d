@@ -61,9 +61,7 @@ namespace d2d
                 SDL_ClearError();
                 int imageExtensionsLoaded = IMG_Init(windowDef.imageExtensions);
                 if ((imageExtensionsLoaded & windowDef.imageExtensions) != windowDef.imageExtensions)
-                    throw InitException{
-                        std::string{"Failed to load all requested imageExtensions: "}
-                        + IMG_GetError()};
+                    throw InitException{ "Failed to load all requested imageExtensions: "s + IMG_GetError() };
                 m_sdlImageInitialized = true;
             }
 

@@ -192,8 +192,8 @@ namespace d2d
 			d2d::Window::PushMatrix();
 			d2d::Window::Translate(buttonTextCenter);
 			d2d::Window::SetColor(m_buttonList[i].textStyle.color);
-			d2d::Window::DrawString(m_buttonList[i].label, d2d::Alignment::CENTERED,
-				m_buttonList[i].textStyle.size * resolution.y, m_buttonList[i].textStyle.fontPtr);
+			d2d::Window::DrawString(m_buttonList[i].label, m_buttonList[i].textStyle.size * resolution.y, 
+				m_buttonList[i].textStyle.fontRefPtr, { d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
 			d2d::Window::PopMatrix();
 
 			// Save point half-way between first button text and top of screen for title drawing
@@ -205,7 +205,8 @@ namespace d2d
 		d2d::Window::PushMatrix();
 		d2d::Window::Translate(titleCenter);
 		d2d::Window::SetColor(m_titleStyle.color);
-		d2d::Window::DrawString(m_title, d2d::Alignment::CENTERED, m_titleStyle.size * resolution.y, m_titleStyle.fontPtr);
+		d2d::Window::DrawString(m_title, m_titleStyle.size * resolution.y, m_titleStyle.fontRefPtr,
+			{ d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
 		d2d::Window::PopMatrix();
 	}
 	void Menu::GetButtonTextCenter(unsigned button, b2Vec2& buttonTextCenter) const

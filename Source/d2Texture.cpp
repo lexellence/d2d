@@ -19,94 +19,89 @@ namespace d2d
         ResourceManager<TextureResource> m_spriteManager;
         ResourceManager<TextureAtlasResource> m_spriteAtlasManager;
 
-		//+----------------------\------------------------------------
-		//|	   InvertSurface	 |
-		//\----------------------/------------------------------------
-		//	Flip sprite so it complies with opengl's lower-left origin.
-		//	Called by GenerateGLTexture.
-		void InvertSurface(SDL_Surface& surface)
-		{
-			int pitch = surface.pitch;
-			int height = surface.h;
-			void* imagePixels = surface.pixels;
+        //+----------------------\------------------------------------
+        //|	   InvertSurface	 |
+        //\----------------------/------------------------------------
+        //	Flip sprite so it complies with opengl's lower-left origin.
+        //	Called by GenerateGLTexture.
+        void InvertSurface(SDL_Surface& surface)
+        {
+            int pitch = surface.pitch;
+            int height = surface.h;
+            void* imagePixels = surface.pixels;
 
-			int index;
-			void* temp_row;
-			int height_div_2;
+            int index;
+            void* temp_row;
+            int height_div_2;
 
-			temp_row = (void*)malloc(pitch);
-			SDL_assert_release(temp_row && "Out of memory.");
+            temp_row = (void*)malloc(pitch);
+            SDL_assert_release(temp_row && "Out of memory.");
 
-			// If height is odd, no need to swap middle row
-			height_div_2 = (int)(height * .5);
-			for (index = 0; index < height_div_2; index++)
-			{
-				//uses string.h
-				memcpy((Uint8*)temp_row,
-					(Uint8*)(imagePixels)+
-					pitch * index,
-					pitch);
-				memcpy(
-					(Uint8*)(imagePixels)+
-					pitch * index,
-					(Uint8*)(imagePixels)+
-					pitch * (height - index - 1),
-					pitch);
-				memcpy(
-					(Uint8*)(imagePixels)+
-					pitch * (height - index - 1),
-					temp_row,
-					pitch);
-			}
-			free(temp_row);
-		}
-
-		//+----------------------\------------------------------------
-		//|	  GenerateGLTexture  |
-		//\----------------------/------------------------------------
-		//	Load sprite data from file, register it with OpenGL, and
-		//	save its ID and aspect ratio in the output parameters.
-		void GenerateGLTexture(const std::string & filename, GLuint & texID, float& widthToHeightRatio)
-		{
-			// Load surface from sprite file
-			SDL_Surface* surface{ IMG_Load(filename.c_str()) };
-			if (!surface)
-				throw InitException{ "SDL_image failed to load file "s + filename };
-
-			if (surface->h == 0)
-				widthToHeightRatio = 1.0f;
-			else
-				widthToHeightRatio = (float)surface->w / (float)surface->h;
-
-			// Flip it so it complies with opengl's lower-left origin
-			//InvertSurface(*surface);
-
-			// Does it use the alpha channel?
-			int colorMode = GL_RGB;
-			if (surface->format->BytesPerPixel == 4)
-				colorMode = GL_RGBA;
-
-			// Create the OpenGL sprite
-			Window::EnableTextures();
-			Window::EnableBlending();
-
-			glGenTextures(1, &texID);
-			glBindTexture(GL_TEXTURE_2D, texID);
-			glTexImage2D(GL_TEXTURE_2D, 0, colorMode, surface->w, surface->h, 0,
-				colorMode, GL_UNSIGNED_BYTE, surface->pixels);
-
-			// GL Texture filter
-			const WindowDef& windowDef = Window::GetWindowDef();
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, windowDef.gl.texture2DMagFilter);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, windowDef.gl.texture2DMinFilter);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, windowDef.gl.textureWrapS);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, windowDef.gl.textureWrapT);
-			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, windowDef.gl.textureEnvMode);
-
-            // We don't need the surface anymore
-            SDL_FreeSurface(surface);
+            // If height is odd, no need to swap middle row
+            height_div_2 = (int)(height * .5);
+            for(index = 0; index < height_div_2; index++)
+            {
+                //uses string.h
+                memcpy((Uint8*)temp_row,
+                    (Uint8*)(imagePixels)+
+                    pitch * index,
+                    pitch);
+                memcpy(
+                    (Uint8*)(imagePixels)+
+                    pitch * index,
+                    (Uint8*)(imagePixels)+
+                    pitch * (height - index - 1),
+                    pitch);
+                memcpy(
+                    (Uint8*)(imagePixels)+
+                    pitch * (height - index - 1),
+                    temp_row,
+                    pitch);
+            }
+            free(temp_row);
         }
+    }
 
+	//+----------------------\------------------------------------
+	//|	  GenerateGLTexture  |
+	//\----------------------/------------------------------------
+	//	Register SDL_Surface as OpenGL texture,
+	//	save gl id and aspect ratio in the output parameters.
+	void GenerateGLTexture(SDL_Surface& surface, GLuint &texID, float& widthToHeightRatio, bool reversedSourcePixelFormat)
+	{
+		if (surface.h == 0)
+			widthToHeightRatio = 1.0f;
+		else
+			widthToHeightRatio = (float)surface.w / (float)surface.h;
+
+		// Flip it so it complies with opengl's lower-left origin
+		//InvertSurface(*surface);
+
+		// Pixel Format
+		int colorMode = GL_RGB;
+		if (surface.format->BytesPerPixel == 4)
+			colorMode = GL_RGBA;
+
+		// Create the OpenGL sprite
+		Window::EnableTextures();
+		Window::EnableBlending();
+
+		glGenTextures(1, &texID);
+		glBindTexture(GL_TEXTURE_2D, texID);
+		glTexImage2D(GL_TEXTURE_2D, 0, colorMode, surface.w, surface.h, 0,
+            colorMode, GL_UNSIGNED_BYTE, surface.pixels);
+
+		// GL Texture filter
+		const WindowDef& windowDef = Window::GetWindowDef();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, windowDef.gl.texture2DMagFilter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, windowDef.gl.texture2DMinFilter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, windowDef.gl.textureWrapS);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, windowDef.gl.textureWrapT);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, windowDef.gl.textureEnvMode);
+    }
+
+    namespace
+    {
         //+----------------------\------------------------------------
         //|   TextureResource    |
         //\----------------------/------------------------------------
@@ -120,8 +115,14 @@ namespace d2d
                 if (filePaths.size() < 1)
                     throw InitException{ "SpriteResource requires one filePath"s };
 
-                // Load sprite into OpenGL
-                GenerateGLTexture(filePaths[0], m_glTextureID, m_pixelWidthToHeightRatio);
+                // Load texture from file
+                SDL_Surface* surfacePtr{ IMG_Load(filePaths[0].c_str()) };
+                if(!surfacePtr)
+                    throw InitException{ "SDL_image failed to load file "s + filePaths[0] };
+
+                // Convert to gl texture
+                GenerateGLTexture(*surfacePtr, m_glTextureID, m_pixelWidthToHeightRatio);
+                SDL_FreeSurface(surfacePtr);
             }
             ~TextureResource()
             {
@@ -261,12 +262,6 @@ namespace d2d
     }
     const TextureCoordinates& TextureStandalone::GetTextureCoordinates() const
     {
-        static const TextureCoordinates NORMAL_FULL_TEXTURE_COORD{
-            .lowerLeft{ 0.0f, 1.0f },
-            .lowerRight{ 1.0f, 1.0f },
-            .upperRight{ 1.0f, 0.0f },
-            .upperLeft{ 0.0f, 0.0f }
-        };
         return NORMAL_FULL_TEXTURE_COORD;
     }
 

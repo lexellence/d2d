@@ -34,7 +34,7 @@ namespace d2d
 		Window::Translate(m_relativePosition);
 		Window::Rotate(m_relativeAngle);
 		Window::SetColor(animationColor * m_tintColor);
-		Window::DrawSprite(*m_texturePtr, finalSize);
+		Window::DrawTexture(*m_texturePtr, finalSize);
 		Window::PopMatrix();
 	}
 	float AnimationFrame::GetFrameTime() const
