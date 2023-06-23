@@ -16,23 +16,28 @@ namespace d2d
 	const b2Vec2 MENU_BUTTON_OFFSET{ 0.0f, 0.008f };
 	const b2Vec2 MENU_BUTTON_SIZE{ 0.35f, 0.054f };
 	const float MENU_BUTTON_GAP{ 0.054f };
-	struct MenuButton
+	struct ButtonStyle
 	{
-		std::string label;
-		TextStyle textStyle;
+		TextStyle text;
 		d2d::Color color;
 		d2d::Color highlightColor;
 		d2d::Color borderColor;
+	};
+	struct MenuButton
+	{
+		std::string label;
+		ButtonStyle style;
 	};
 	class Menu
 	{
 	public:
 		void Init();
-		void AddButton(const MenuButton& button);
-		void RemoveAllButtons();
+		void AddButton(const MenuButton& button, bool startSelected = false);
+		void ClearButtons();
 		void RemoveButton(const std::string& label);
-		void ReplaceButton(const std::string& label, const MenuButton& newButton);
+		void ReplaceButton(const std::string& oldLabel, const MenuButton& newButton);
 		void SetButtons(const std::vector<MenuButton>& buttonList);
+		void SetSelectedButton(unsigned buttonIndex);
 		void SetTitle(const std::string& title);
 		void SetTitleStyle(const TextStyle& style);
 		void SetBackgroundColor(const d2d::Color& color);
@@ -56,7 +61,8 @@ namespace d2d
 		TextStyle m_titleStyle;
 		d2d::Color m_backgroundColor;
 
-		unsigned m_currentButton{};
+		unsigned m_currentButton{ 0 };
+		unsigned m_startingButton{ 0 };
 		std::queue<unsigned> m_buttonsPressed;
 
 	};

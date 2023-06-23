@@ -13,35 +13,42 @@
 #include "d2Window.h"
 #include "d2Color.h"
 #include "d2Rect.h"
+#include <d2NumberManip.h>
 namespace d2d
 {
 	void Menu::Init()
 	{
-		m_currentButton = 0;
+		m_currentButton = m_startingButton;
 		while(!m_buttonsPressed.empty())
 			m_buttonsPressed.pop();
 	}
-	void Menu::AddButton(const MenuButton& button)
+	void Menu::AddButton(const MenuButton& button, bool startSelected)
 	{
 		m_buttonList.push_back(button);
+		if(startSelected)
+			m_currentButton = m_startingButton = m_buttonList.size() - 1;
 	}
-	void Menu::RemoveAllButtons()
+	void Menu::ClearButtons()
 	{
 		m_buttonList.clear();
+		Init();
 	}
 	void Menu::RemoveButton(const std::string& label)
 	{
-		for(auto it = m_buttonList.begin(); it != m_buttonList.end(); it++)
+		unsigned i = 0;
+		for(auto it = m_buttonList.begin(); it != m_buttonList.end(); it++, i++)
 			if(it->label == label)
 			{
 				m_buttonList.erase(it);
+				if(m_currentButton > m_buttonList.size())
+					m_currentButton--;
 				return;
 			}
 	}
-	void Menu::ReplaceButton(const std::string& label, const MenuButton& newButton)
+	void Menu::ReplaceButton(const std::string& oldLabel, const MenuButton& newButton)
 	{
 		for(auto it = m_buttonList.begin(); it != m_buttonList.end(); it++)
-			if(it->label == label)
+			if(it->label == oldLabel)
 			{
 				(*it) = newButton;
 				return;
@@ -50,6 +57,13 @@ namespace d2d
 	void Menu::SetButtons(const std::vector<MenuButton>& buttonList)
 	{
 		m_buttonList = buttonList;
+	}
+	void Menu::SetSelectedButton(unsigned buttonIndex)
+	{
+		if(m_buttonList.empty())
+			m_currentButton = 0;
+		else
+			m_currentButton = std::min((size_t)buttonIndex, m_buttonList.size() - 1);
 	}
 	void Menu::SetTitle(const std::string& title)
 	{
@@ -179,7 +193,7 @@ namespace d2d
 			buttonRect.upperBound = { buttonRect.upperBound.x * resolution.x, buttonRect.upperBound.y * resolution.y };
 			if(i == m_currentButton)
 			{
-				d2d::Window::SetColor(m_buttonList[i].highlightColor);
+				d2d::Window::SetColor(m_buttonList[i].style.highlightColor);
 				d2d::Window::DrawRect(buttonRect, true);
 			}
 			d2d::Window::SetColor({ 0.5f, 0.5f, 0.5f, 0.5f });
@@ -191,9 +205,9 @@ namespace d2d
 			buttonTextCenter = { buttonTextCenter.x * resolution.x, buttonTextCenter.y * resolution.y };
 			d2d::Window::PushMatrix();
 			d2d::Window::Translate(buttonTextCenter);
-			d2d::Window::SetColor(m_buttonList[i].textStyle.color);
-			d2d::Window::DrawString(m_buttonList[i].label, m_buttonList[i].textStyle.size * resolution.y, 
-				m_buttonList[i].textStyle.fontRefPtr, { d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
+			d2d::Window::SetColor(m_buttonList[i].style.text.color);
+			d2d::Window::DrawString(m_buttonList[i].label, m_buttonList[i].style.text.size * resolution.y,
+				m_buttonList[i].style.text.fontRefPtr, { d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
 			d2d::Window::PopMatrix();
 
 			// Save point half-way between first button text and top of screen for title drawing
