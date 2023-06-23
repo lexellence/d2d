@@ -173,6 +173,7 @@ namespace d2d
 		for(unsigned i = 0; i < m_buttonList.size(); ++i)
 		{
 			// Draw button with optional highlighting
+			d2d::Window::DisableTextures();
 			d2d::Rect buttonRect;
 			GetButtonRect(i, buttonRect);
 			buttonRect.lowerBound = { buttonRect.lowerBound.x * resolution.x, buttonRect.lowerBound.y * resolution.y };
@@ -186,6 +187,7 @@ namespace d2d
 			d2d::Window::DrawRect(buttonRect, false);
 
 			// Draw text
+			d2d::Window::EnableTextures();
 			b2Vec2 buttonTextCenter;
 			GetButtonTextCenter(i, buttonTextCenter);
 			buttonTextCenter = { buttonTextCenter.x * resolution.x, buttonTextCenter.y * resolution.y };
@@ -202,6 +204,7 @@ namespace d2d
 		}
 
 		// Draw title
+		d2d::Window::EnableTextures();
 		d2d::Window::PushMatrix();
 		d2d::Window::Translate(titleCenter);
 		d2d::Window::SetColor(m_titleStyle.color);

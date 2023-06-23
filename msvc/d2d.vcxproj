@@ -62,7 +62,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <EnableParallelCodeGeneration>
       </EnableParallelCodeGeneration>
-      <AdditionalIncludeDirectories>C:\boost\boost_1_82_0;$(ProjectDir)..\Include;$(ProjectDir)..\..\..\libs\SDL2\include;$(ProjectDir)..\..\..\libs\freetype-2.13.0\include;$(ProjectDir)..\..\..\libs\box2d-2.4.1\include;$(ProjectDir)..\extern\hjson-cpp-2.3;$(ProjectDir)..\extern\libdrawtext-0.6;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libs\ftgl-2.1.3~rc5\src;C:\boost\boost_1_82_0;$(ProjectDir)..\Include;$(ProjectDir)..\..\..\libs\SDL2\include;$(ProjectDir)..\..\..\libs\freetype-2.13.0\include;$(ProjectDir)..\..\..\libs\box2d-2.4.1\include;$(ProjectDir)..\extern\hjson-cpp-2.3;$(ProjectDir)..\extern\libdrawtext-0.6;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>d2pch.h</PrecompiledHeaderFile>
@@ -81,7 +81,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <EnableParallelCodeGeneration>
       </EnableParallelCodeGeneration>
-      <AdditionalIncludeDirectories>C:\boost\boost_1_82_0;$(ProjectDir)..\Include;$(ProjectDir)..\..\..\libs\SDL2\include;$(ProjectDir)..\..\..\libs\freetype-2.13.0\include;$(ProjectDir)..\..\..\libs\box2d-2.4.1\include;$(ProjectDir)..\extern\hjson-cpp-2.3;$(ProjectDir)..\extern\libdrawtext-0.6;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libs\ftgl-2.1.3~rc5\src;C:\boost\boost_1_82_0;$(ProjectDir)..\Include;$(ProjectDir)..\..\..\libs\SDL2\include;$(ProjectDir)..\..\..\libs\freetype-2.13.0\include;$(ProjectDir)..\..\..\libs\box2d-2.4.1\include;$(ProjectDir)..\extern\hjson-cpp-2.3;$(ProjectDir)..\extern\libdrawtext-0.6;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>d2pch.h</PrecompiledHeaderFile>

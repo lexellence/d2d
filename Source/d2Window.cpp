@@ -12,6 +12,7 @@
 #include "d2Utility.h"
 #include "d2Timer.h"
 #include "d2NumberManip.h"
+#include "d2Texture.h"
 #include <optional>
 namespace d2d
 {
@@ -415,124 +416,54 @@ namespace d2d
 				glVertex2f(vertices[i].x, vertices[i].y);
 			glEnd();
 		}
-		void DrawString(const std::string& text, Alignment alignment, float size, const FontReference* fontPtr)
+		namespace
 		{
-			if(!fontPtr)
-				return;
-
-			if (!m_fontBinded || m_boundFontID != fontPtr->GetID())
+			void DrawGLTexture(GLuint glTextureID, TextureCoordinates textureCoords, const Rect& drawRect)
 			{
-				// Find the loaded font with matching id, and enable it.
-				m_fontBinded = true;
-				//m_bindedDTXFontSize = FontResource::dtxFontSize;
-				m_boundFontID = fontPtr->GetID();
-
-				//dtx_use_font(m_fontManager.GetResource(fontID).GetDTXFontPtr(), m_bindedDTXFontSize);
-				dtx_use_font(fontPtr->GetDTXFontPtr(), DTX_FONT_SIZE);
+				if(!m_textureBinded || m_boundGLTextureID != glTextureID)
+				{
+					glBindTexture(GL_TEXTURE_2D, glTextureID);
+					m_boundGLTextureID = glTextureID;
+				}
+				glBegin(GL_QUADS);
+				{
+					glTexCoord2f(textureCoords.lowerLeft.x, textureCoords.lowerLeft.y);
+					glVertex2f(drawRect.lowerBound.x, drawRect.lowerBound.y);
+					glTexCoord2f(textureCoords.lowerRight.x, textureCoords.lowerRight.y);
+					glVertex2f(drawRect.upperBound.x, drawRect.lowerBound.y);
+					glTexCoord2f(textureCoords.upperRight.x, textureCoords.upperRight.y);
+					glVertex2f(drawRect.upperBound.x, drawRect.upperBound.y);
+					glTexCoord2f(textureCoords.upperLeft.x, textureCoords.upperLeft.y);
+					glVertex2f(drawRect.lowerBound.x, drawRect.upperBound.y);
+				}
+				glEnd();
 			}
-			//if (m_bindedDTXFontSize < 0)
-			//	return;
-
-			// ***********************************************************************************************************
-			// ***********************************************************************************************************
-			// TODO: THIS IS HACKED TOGETHER... MAKE A PROPER TEXT SIZING MECHANISM, OR SWITCH TO ANOTHER GL TEXT LIB
-			// ***********************************************************************************************************
-			//float scale{ fontSize / (float)m_bindedDTXFontSize };
-			//b2Vec2 resolution{ GetScreenResolution() };
-			//size *= 0.5f * (resolution.x + resolution.y);
-			float scale{ size / (float)DTX_FONT_SIZE };
-			glScalef(scale, scale, 1.0f);
-			// ***********************************************************************************************************
-			// ***********************************************************************************************************
-
-			// Alignment: dtx string alignment is left bottom of the first character of the first line,
-			//	so we have to translate to that point.
-			float fontHeight;
-			{
-				float lineHeight{ dtx_line_height() };
-				float fontHeightToLineHeightRatio{ FONT_HEIGHT_TO_LINE_HEIGHT_RATIO };
-				fontHeight = fontHeightToLineHeightRatio * lineHeight;
-			}
-			float fontPadding{ FONT_PADDING };
-			struct dtx_box stringDimensions;
-			dtx_string_box(text.c_str(), &stringDimensions);
-			b2Vec2 translation;
-			switch (alignment)
-			{
-			case Alignment::LEFT_TOP:
-				translation.x = fontPadding;
-				translation.y = -(fontHeight + fontPadding);
-				break;
-			case Alignment::CENTER_TOP:
-				translation.x = -0.5f * stringDimensions.width;
-				translation.y = -(fontHeight + fontPadding);
-				break;
-			case Alignment::RIGHT_TOP:
-				translation.x = -(stringDimensions.width + fontPadding);
-				translation.y = -(fontHeight + fontPadding);
-				break;
-			case Alignment::LEFT_CENTER:
-				translation.x = fontPadding;
-				translation.y = 0.5f * stringDimensions.height - fontHeight;
-				break;
-			case Alignment::CENTERED:
-				translation.x = -0.5f * stringDimensions.width;
-				translation.y = 0.5f * stringDimensions.height - fontHeight;
-				break;
-			case Alignment::RIGHT_CENTER:
-				translation.x = -(stringDimensions.width + fontPadding);
-				translation.y = 0.5f * stringDimensions.height - fontHeight;
-				break;
-			case Alignment::LEFT_BOTTOM:  // dtx origin
-			default:
-				translation.x = fontPadding;
-				translation.y = stringDimensions.height + fontPadding - fontHeight;
-				break;
-			case Alignment::CENTER_BOTTOM:
-				translation.x = -0.5f * stringDimensions.width;
-				translation.y = (stringDimensions.height + fontPadding) - fontHeight;
-				break;
-			case Alignment::RIGHT_BOTTOM:
-				translation.x = -(stringDimensions.width + fontPadding);
-				translation.y = stringDimensions.height + fontPadding - fontHeight;
-				break;
-			}
-
-			// Draw string
-			Window::PushMatrix();
-			Window::Translate(translation);
-			dtx_string(text.c_str());
-			Window::PopMatrix();
 		}
-		void DrawSprite(const Texture& texture, const b2Vec2& size)
+		void DrawTexture(const Texture& texture, const b2Vec2& size)
 		{
 			Rect drawRect;
 			drawRect.SetCenter(b2Vec2_zero, size);
-			DrawSpriteInRect(texture, drawRect);
+			DrawTextureInRect(texture, drawRect);
 		}
-		void DrawSpriteInRect(const Texture& texture, const Rect& drawRect)
+		void DrawTextureInRect(const Texture& texture, const Rect& drawRect)
 		{
-			GLuint glTextureID = texture.GetGLTextureID();
-			if (!m_textureBinded || m_boundGLTextureID != glTextureID)
-			{
-				glBindTexture(GL_TEXTURE_2D, glTextureID);
-				m_boundGLTextureID = glTextureID;
-			}
-
-            TextureCoordinates textureCoords = texture.GetTextureCoordinates();
-            glBegin(GL_QUADS);
-            {
-                glTexCoord2f(textureCoords.lowerLeft.x, textureCoords.lowerLeft.y);
-                glVertex2f(drawRect.lowerBound.x, drawRect.lowerBound.y);
-                glTexCoord2f(textureCoords.lowerRight.x, textureCoords.lowerRight.y);
-                glVertex2f(drawRect.upperBound.x, drawRect.lowerBound.y);
-                glTexCoord2f(textureCoords.upperRight.x, textureCoords.upperRight.y);
-                glVertex2f(drawRect.upperBound.x, drawRect.upperBound.y);
-                glTexCoord2f(textureCoords.upperLeft.x, textureCoords.upperLeft.y);
-                glVertex2f(drawRect.lowerBound.x, drawRect.upperBound.y);
-            }
-            glEnd();
+			DrawGLTexture(texture.GetGLTextureID(), texture.GetTextureCoordinates(), drawRect);
         }
+		void DrawString(const std::string& text, float size, const FontReference* fontRefPtr, const AlignmentAnchor& anchor)
+		{
+			if(!fontRefPtr)
+				return;
+			FTBBox box = fontRefPtr->GetFontPtr()->BBox(text.c_str());
+			FTPoint upper = box.Upper();
+			FTPoint lower = box.Lower();
+			float width = upper.X() - lower.X();
+			float height = upper.Y() - lower.Y();
+			Rect alignedRect = GetAlignedRect(width, height, anchor);
+			PushMatrix();
+			Translate({ alignedRect.lowerBound.x, alignedRect.upperBound.y });
+			fontRefPtr->GetFontPtr()->Render(text.c_str());
+			PopMatrix();
+		}
 		void ShowSimpleMessageBox(MessageBoxType type, const std::string& title, const std::string& message)
 		{
 			if(m_windowDef.fullScreen)

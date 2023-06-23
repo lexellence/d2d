@@ -28,10 +28,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
+#include <FTGL/ftgl.h>
 #include <SDL2/SDL_net.h>
 #include <GL/glu.h>
 #include <box2d/box2d.h>
-#include <drawtext.h>
 #include <hjson.h>
 
 #include <boost/algorithm/string.hpp>

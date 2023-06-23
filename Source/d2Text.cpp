@@ -23,28 +23,23 @@ namespace d2d
         {
         public:
             // filePaths[0]: path of the font file
-            explicit FontResource(const std::vector<std::string> &filePaths)
+            explicit FontResource(const std::vector<std::string>& filePaths)
                 : Resource(filePaths)
             {
                 if (filePaths.size() < 1)
                     throw InitException{"FontResource requires one filePath"s};
-
-                m_dtxFontPtr = dtx_open_font(filePaths[0].c_str(), DTX_FONT_SIZE);
-                if (!m_dtxFontPtr)
-                    throw InitException{"Failed to open font: "s + filePaths[0]};
+                m_fontPtr = new FTGLOutlineFont(filePaths[0].c_str());
+                if (!m_fontPtr || m_fontPtr->Error())
+                    throw InitException{"Could not load font: "s + filePaths[0]};
+                //m_fontPtr->FaceSize(FONT_SIZE);
             }
-            ~FontResource()
+            FTGLOutlineFont* GetFontPtr() const
             {
-                if (m_dtxFontPtr)
-                    dtx_close_font(m_dtxFontPtr);
-            }
-            dtx_font* GetDTXFontPtr() const
-            {
-                return m_dtxFontPtr;
+                return m_fontPtr;
             }
 
         private:
-            struct dtx_font *m_dtxFontPtr{nullptr};
+            FTGLOutlineFont* m_fontPtr;
         };
     }
 
@@ -58,8 +53,8 @@ namespace d2d
     {
         m_fontManager.Unload(GetID());
     }
-    dtx_font* FontReference::GetDTXFontPtr() const
+    FTGLOutlineFont* FontReference::GetFontPtr() const
     {
-        return m_fontManager.GetResource(GetID()).GetDTXFontPtr();
+        return m_fontManager.GetResource(GetID()).GetFontPtr();
     }
 }
