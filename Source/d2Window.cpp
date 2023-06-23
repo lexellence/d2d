@@ -464,10 +464,6 @@ namespace d2d
 				dtx_use_font(fontPtr->GetDTXFontPtr(), DTX_FONT_SIZE);
 			}
 
-			// Adjust size on screen so that it looks the same at any window size
-			float scale{ size / (float)DTX_FONT_SIZE };
-			glScalef(scale, scale, 1.0f);
-
 			// Height 
 			float fontHeight;
 			{
@@ -482,8 +478,12 @@ namespace d2d
 			dtx_string_box(text.c_str(), &stringDimensions);
 			b2Vec2 translation = GetTextAlignmentTranslation(stringDimensions.width, stringDimensions.height, fontHeight, fontPadding, anchor);
 
+			// Adjust size on screen so that it looks the same at any window size
+			float scale{ size / (float)DTX_FONT_SIZE };
+
 			// Draw string
 			Window::PushMatrix();
+			glScalef(scale, scale, 1.0f);
 			Window::Translate(translation);
 			dtx_string(text.c_str());
 			Window::PopMatrix();
