@@ -10,6 +10,7 @@
 #include "d2pch.h"
 #include "d2Utility.h"
 #include "d2StringManip.h"
+#include "d2Rect.h"
 
 const b2Vec2 operator*(b2Vec2 v1, const b2Vec2& v2)
 {
@@ -34,6 +35,48 @@ const b2Transform operator*(float s, b2Transform t)
 
 namespace d2d
 {
+	//+---------------------\-------------------------------------
+	//|	   GetAlignedRect   |
+	//\---------------------/-------------------------------------
+	Rect GetAlignedRect(float width, float height, const AlignmentAnchor& anchor)
+	{
+		Rect alignedRect;
+		switch(anchor.x)
+		{
+		case AlignmentAnchorX::CENTER:
+			alignedRect.lowerBound.x = 0.5f * -width;
+			alignedRect.upperBound.x = 0.5f * width;
+			break;
+		case AlignmentAnchorX::LEFT:
+			alignedRect.lowerBound.x = 0.0f;
+			alignedRect.upperBound.x = width;
+			break;
+		case AlignmentAnchorX::RIGHT:
+			alignedRect.lowerBound.x = -width;
+			alignedRect.upperBound.x = 0.0f;
+			break;
+		}
+		switch(anchor.y)
+		{
+		case AlignmentAnchorY::CENTER:
+			alignedRect.lowerBound.y = 0.5f * -height;
+			alignedRect.upperBound.y = 0.5f * height;
+			break;
+		case AlignmentAnchorY::BOTTOM:
+			alignedRect.lowerBound.y = 0.0f;
+			alignedRect.upperBound.y = height;
+			break;
+		case AlignmentAnchorY::TOP:
+			alignedRect.lowerBound.y = -height;
+			alignedRect.upperBound.y = 0.0f;
+			break;
+		}
+		return alignedRect;
+	}
+
+	//+-----------------------------\-----------------------------
+	//|	   CalculateKineticEnergy   |
+	//\-----------------------------/-----------------------------
 	float CalculateKineticEnergy(b2Body* bodyPtr)
 	{
 		if(!bodyPtr)
@@ -44,7 +87,7 @@ namespace d2d
 	}
 
 	//+-------------\---------------------------------------------
-	//|	   Input    |
+	//|	 AxisToUnit |
 	//\-------------/---------------------------------------------
 	float AxisToUnit(Sint16 value, float deadZone, float aliveZone)
 	{
@@ -85,19 +128,5 @@ namespace d2d
 		std::stringstream sstr;
 		sstr << inStream.rdbuf();
 		return sstr.str();
-	}
-	int StringToImageInitFlag(std::string extensionString)
-	{
-		ToLowerCase(extensionString);
-		if(extensionString == "jpg")
-			return IMG_INIT_JPG;
-		else if(extensionString == "png")
-			return IMG_INIT_PNG;
-		else if(extensionString == "tif")
-			return IMG_INIT_TIF;
-		else if(extensionString == "webp")
-			return IMG_INIT_WEBP;
-		else
-			return 0;
 	}
 }

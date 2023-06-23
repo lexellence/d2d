@@ -24,7 +24,7 @@ namespace d2d
 	};
 	struct TextStyle
 	{
-		FontReference* fontPtr;
+		FontReference* fontRefPtr;
 		Color color;
 		float size;
 	};

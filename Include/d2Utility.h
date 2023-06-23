@@ -9,6 +9,7 @@
 \**************************************************************************************/
 #pragma once
 #include <iostream>
+#include "d2Rect.h"
 
 // Logging
 //using d2LogSeverity = boost::log::trivial::severity_level;
@@ -78,17 +79,24 @@ namespace d2d
 	float CalculateKineticEnergy(b2Body* bodyPtr);
 
 	// Alignment
-	enum class Alignment
+	enum class AlignmentAnchorX
 	{
-		LEFT_TOP, CENTER_TOP, RIGHT_TOP,
-		LEFT_CENTER, CENTERED, RIGHT_CENTER,
-		LEFT_BOTTOM, CENTER_BOTTOM, RIGHT_BOTTOM
+		LEFT, CENTER, RIGHT
 	};
+	enum class AlignmentAnchorY
+	{
+		BOTTOM, CENTER, TOP
+	};
+	struct AlignmentAnchor
+	{
+		AlignmentAnchorX x{ AlignmentAnchorX::CENTER };
+		AlignmentAnchorY y{ AlignmentAnchorY::CENTER };
+	};
+	Rect GetAlignedRect(float width, float height, const AlignmentAnchor& anchor);
 
 	// Gamepads
 	float AxisToUnit(Sint16 value, float deadZone = 6700.0f, float aliveZone = 2000.0f);
 
 	// Files
 	std::string FileToString(const std::string& filePath);
-	int StringToImageInitFlag(std::string extensionString);
 }

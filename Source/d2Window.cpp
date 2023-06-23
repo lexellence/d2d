@@ -61,9 +61,7 @@ namespace d2d
                 SDL_ClearError();
                 int imageExtensionsLoaded = IMG_Init(windowDef.imageExtensions);
                 if ((imageExtensionsLoaded & windowDef.imageExtensions) != windowDef.imageExtensions)
-                    throw InitException{
-                        std::string{"Failed to load all requested imageExtensions: "}
-                        + IMG_GetError()};
+                    throw InitException{ "Failed to load all requested imageExtensions: "s + IMG_GetError() };
                 m_sdlImageInitialized = true;
             }
 
@@ -417,88 +415,72 @@ namespace d2d
 				glVertex2f(vertices[i].x, vertices[i].y);
 			glEnd();
 		}
-		void DrawString(const std::string& text, Alignment alignment, float size, const FontReference* fontPtr)
+		namespace
+		{
+			b2Vec2 GetTextAlignmentTranslation(float width, float height, float fontHeight,
+				float padding, const AlignmentAnchor& anchor)
+			{
+				b2Vec2 translation;
+				// Alignment: dtx string alignment is left bottom of the first character of the first line,
+				//	so we have to translate to that point.
+				switch(anchor.x)
+				{
+				case AlignmentAnchorX::CENTER:
+					translation.x = -0.5f * width;
+					break;
+				case AlignmentAnchorX::LEFT:
+					translation.x = padding;
+					break;
+				case AlignmentAnchorX::RIGHT:
+					translation.x = -(width + padding);
+					break;
+				}
+				switch(anchor.y)
+				{
+				case AlignmentAnchorY::CENTER:
+					translation.y = 0.5f * height - fontHeight;
+					break;
+				case AlignmentAnchorY::BOTTOM:
+					translation.y = height + padding - fontHeight;
+					break;
+				case AlignmentAnchorY::TOP:
+					translation.y = -(fontHeight + padding);
+					break;
+				}
+				return translation;
+			}
+		}
+		void DrawString(const std::string& text, float size, const FontReference* fontPtr, const AlignmentAnchor& anchor)
 		{
 			if(!fontPtr)
 				return;
 
+			// Bind font if not already bound
 			if (!m_fontBinded || m_boundFontID != fontPtr->GetID())
 			{
 				// Find the loaded font with matching id, and enable it.
 				m_fontBinded = true;
-				//m_bindedDTXFontSize = FontResource::dtxFontSize;
 				m_boundFontID = fontPtr->GetID();
-
-				//dtx_use_font(m_fontManager.GetResource(fontID).GetDTXFontPtr(), m_bindedDTXFontSize);
 				dtx_use_font(fontPtr->GetDTXFontPtr(), DTX_FONT_SIZE);
 			}
-			//if (m_bindedDTXFontSize < 0)
-			//	return;
 
-			// ***********************************************************************************************************
-			// ***********************************************************************************************************
-			// TODO: THIS IS HACKED TOGETHER... MAKE A PROPER TEXT SIZING MECHANISM, OR SWITCH TO ANOTHER GL TEXT LIB
-			// ***********************************************************************************************************
-			//float scale{ fontSize / (float)m_bindedDTXFontSize };
-			//b2Vec2 resolution{ GetScreenResolution() };
-			//size *= 0.5f * (resolution.x + resolution.y);
+			// Adjust size on screen so that it looks the same at any window size
 			float scale{ size / (float)DTX_FONT_SIZE };
 			glScalef(scale, scale, 1.0f);
-			// ***********************************************************************************************************
-			// ***********************************************************************************************************
 
-			// Alignment: dtx string alignment is left bottom of the first character of the first line,
-			//	so we have to translate to that point.
+			// Height 
 			float fontHeight;
 			{
 				float lineHeight{ dtx_line_height() };
 				float fontHeightToLineHeightRatio{ FONT_HEIGHT_TO_LINE_HEIGHT_RATIO };
 				fontHeight = fontHeightToLineHeightRatio * lineHeight;
 			}
+
+			// Padding
 			float fontPadding{ FONT_PADDING };
 			struct dtx_box stringDimensions;
 			dtx_string_box(text.c_str(), &stringDimensions);
-			b2Vec2 translation;
-			switch (alignment)
-			{
-			case Alignment::LEFT_TOP:
-				translation.x = fontPadding;
-				translation.y = -(fontHeight + fontPadding);
-				break;
-			case Alignment::CENTER_TOP:
-				translation.x = -0.5f * stringDimensions.width;
-				translation.y = -(fontHeight + fontPadding);
-				break;
-			case Alignment::RIGHT_TOP:
-				translation.x = -(stringDimensions.width + fontPadding);
-				translation.y = -(fontHeight + fontPadding);
-				break;
-			case Alignment::LEFT_CENTER:
-				translation.x = fontPadding;
-				translation.y = 0.5f * stringDimensions.height - fontHeight;
-				break;
-			case Alignment::CENTERED:
-				translation.x = -0.5f * stringDimensions.width;
-				translation.y = 0.5f * stringDimensions.height - fontHeight;
-				break;
-			case Alignment::RIGHT_CENTER:
-				translation.x = -(stringDimensions.width + fontPadding);
-				translation.y = 0.5f * stringDimensions.height - fontHeight;
-				break;
-			case Alignment::LEFT_BOTTOM:  // dtx origin
-			default:
-				translation.x = fontPadding;
-				translation.y = stringDimensions.height + fontPadding - fontHeight;
-				break;
-			case Alignment::CENTER_BOTTOM:
-				translation.x = -0.5f * stringDimensions.width;
-				translation.y = (stringDimensions.height + fontPadding) - fontHeight;
-				break;
-			case Alignment::RIGHT_BOTTOM:
-				translation.x = -(stringDimensions.width + fontPadding);
-				translation.y = stringDimensions.height + fontPadding - fontHeight;
-				break;
-			}
+			b2Vec2 translation = GetTextAlignmentTranslation(stringDimensions.width, stringDimensions.height, fontHeight, fontPadding, anchor);
 
 			// Draw string
 			Window::PushMatrix();
@@ -506,13 +488,13 @@ namespace d2d
 			dtx_string(text.c_str());
 			Window::PopMatrix();
 		}
-		void DrawSprite(const Texture& texture, const b2Vec2& size)
+		void DrawTexture(const Texture& texture, const b2Vec2& size)
 		{
 			Rect drawRect;
 			drawRect.SetCenter(b2Vec2_zero, size);
-			DrawSpriteInRect(texture, drawRect);
+			DrawTextureInRect(texture, drawRect);
 		}
-		void DrawSpriteInRect(const Texture& texture, const Rect& drawRect)
+		void DrawTextureInRect(const Texture& texture, const Rect& drawRect)
 		{
 			GLuint glTextureID = texture.GetGLTextureID();
 			if (!m_textureBinded || m_boundGLTextureID != glTextureID)

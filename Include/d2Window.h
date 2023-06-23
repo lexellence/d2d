@@ -145,9 +145,9 @@ namespace d2d
 		void DrawRect(const Rect& drawRect, bool fill=false);
 		void DrawLine(const b2Vec2& p1, const b2Vec2& p2);
 		void DrawLineStrip(const b2Vec2* vertices, unsigned vertexCount);
-		void DrawString(const std::string& text, Alignment alignment, float size, const FontReference* fontPtr);
-        void DrawSprite(const Texture& texture, const b2Vec2& size);
-        void DrawSpriteInRect(const Texture& texture, const Rect& drawRect);
+		void DrawString(const std::string& text, float size, const FontReference* fontRefPtr, const AlignmentAnchor& anchor = {});
+        void DrawTexture(const Texture& texture, const b2Vec2& size);
+        void DrawTextureInRect(const Texture& texture, const Rect& drawRect);
 		void ShowSimpleMessageBox(MessageBoxType type, const std::string& title, const std::string& message);
     }
 }
