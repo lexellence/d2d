@@ -65,6 +65,10 @@ namespace d2d
 		else
 			m_currentButton = std::min((size_t)buttonIndex, m_buttonList.size() - 1);
 	}
+	const std::string& Menu::GetTitle() const
+	{
+		return m_title;
+	}
 	void Menu::SetTitle(const std::string& title)
 	{
 		m_title = title;

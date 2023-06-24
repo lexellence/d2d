@@ -38,6 +38,7 @@ namespace d2d
 		void ReplaceButton(const std::string& oldLabel, const MenuButton& newButton);
 		void SetButtons(const std::vector<MenuButton>& buttonList);
 		void SetSelectedButton(unsigned buttonIndex);
+		const std::string& GetTitle() const;
 		void SetTitle(const std::string& title);
 		void SetTitleStyle(const TextStyle& style);
 		void SetBackgroundColor(const d2d::Color& color);
