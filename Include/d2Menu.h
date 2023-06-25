@@ -27,6 +27,7 @@ namespace d2d
 	{
 		std::string label;
 		ButtonStyle style;
+		int userData{};
 	};
 	class Menu
 	{
@@ -37,6 +38,7 @@ namespace d2d
 		void RemoveButton(const std::string& label);
 		void ReplaceButton(const std::string& oldLabel, const MenuButton& newButton);
 		void SetButtons(const std::vector<MenuButton>& buttonList);
+		unsigned GetSelectedButtonIndex() const;
 		void SetSelectedButton(unsigned buttonIndex);
 		const std::string& GetTitle() const;
 		void SetTitle(const std::string& title);
@@ -49,6 +51,7 @@ namespace d2d
 
 		void ProcessEvent(const SDL_Event& event);
 		bool PollPressedButton(std::string& labelOut);
+		bool PollPressedButton(MenuButton& buttonOut);
 		void Draw() const;
 	private:
 		void SelectPrevious();

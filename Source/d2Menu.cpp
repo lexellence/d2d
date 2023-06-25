@@ -58,12 +58,19 @@ namespace d2d
 	{
 		m_buttonList = buttonList;
 	}
+	unsigned Menu::GetSelectedButtonIndex() const
+	{
+		return m_currentButton;
+	}
 	void Menu::SetSelectedButton(unsigned buttonIndex)
 	{
 		if(m_buttonList.empty())
 			m_currentButton = 0;
 		else
-			m_currentButton = std::min((size_t)buttonIndex, m_buttonList.size() - 1);
+		{
+			unsigned maxIndex = m_buttonList.size() - 1;
+			m_currentButton = GetClamped(buttonIndex, { 0, maxIndex });
+		}
 	}
 	const std::string& Menu::GetTitle() const
 	{
@@ -170,6 +177,17 @@ namespace d2d
 		else
 		{
 			labelOut = m_buttonList[m_buttonsPressed.front()].label;
+			m_buttonsPressed.pop();
+			return true;
+		}
+	}
+	bool Menu::PollPressedButton(MenuButton& buttonOut)
+	{
+		if(m_buttonsPressed.empty())
+			return false;
+		else
+		{
+			buttonOut = m_buttonList[m_buttonsPressed.front()];
 			m_buttonsPressed.pop();
 			return true;
 		}
