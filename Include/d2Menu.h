@@ -45,8 +45,11 @@ namespace d2d
 		unsigned GetSelectedButtonIndex() const;
 		void SetSelectedButton(unsigned buttonIndex);
 		const std::string& GetTitle() const;
-		void SetTitle(const std::string& title);
+		void SetTitle(const std::string& title = ""s);
 		void SetTitleStyle(const TextStyle& style);
+		const std::string& GetSubtitle() const;
+		void SetSubtitle(const std::string& title = ""s);
+		void SetSubtitleStyle(const TextStyle& style);
 		void SetBackgroundColor(const d2d::Color& color);
 
 		void Set(const std::string& title, const TextStyle& titleStyle,
@@ -67,6 +70,8 @@ namespace d2d
 		std::vector<MenuButton> m_buttonList;
 		std::string m_title;
 		TextStyle m_titleStyle;
+		std::string m_subtitle;
+		TextStyle m_subtitleStyle;
 		d2d::Color m_backgroundColor;
 
 		unsigned m_currentButton{ 0 };

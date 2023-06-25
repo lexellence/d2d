@@ -72,6 +72,7 @@ namespace d2d
 			m_currentButton = GetClamped(buttonIndex, { 0, maxIndex });
 		}
 	}
+
 	const std::string& Menu::GetTitle() const
 	{
 		return m_title;
@@ -84,6 +85,20 @@ namespace d2d
 	{
 		m_titleStyle = style;
 	}
+
+	const std::string& Menu::GetSubtitle() const
+	{
+		return m_subtitle;
+	}
+	void Menu::SetSubtitle(const std::string& title)
+	{
+		m_subtitle = title;
+	}
+	void Menu::SetSubtitleStyle(const TextStyle& style)
+	{
+		m_subtitleStyle = style;
+	}
+
 	void Menu::SetBackgroundColor(const d2d::Color& color)
 	{
 		m_backgroundColor = color;
@@ -204,8 +219,11 @@ namespace d2d
 		d2d::Window::SetColor(m_backgroundColor);
 		d2d::Window::DrawRect({ b2Vec2_zero, resolution }, true);
 
-		// Draw menu buttons
 		b2Vec2 titleCenter;
+		b2Vec2 subtitleCenter;
+		bool drawSubtitle = !m_subtitle.empty();
+
+		// Draw menu buttons
 		for(unsigned i = 0; i < m_buttonList.size(); ++i)
 		{
 			// Draw button with optional highlighting
@@ -232,9 +250,22 @@ namespace d2d
 				m_buttonList[i].style.text.fontRefPtr, { d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
 			d2d::Window::PopMatrix();
 
-			// Save point half-way between first button text and top of screen for title drawing
 			if(i == 0)
-				titleCenter.Set(buttonTextCenter.x, (buttonTextCenter.y + resolution.y) / 2.0f);
+			{
+				// Title/subtitle: Between first button text and top of screen
+				if(drawSubtitle)
+				{
+					float titleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 0.5f);
+					titleCenter.Set(buttonTextCenter.x, titleY);
+					float subtitleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 0.25f);
+					subtitleCenter.Set(buttonTextCenter.x, subtitleY);
+				}
+				else
+				{
+					float titleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 0.5f);
+					titleCenter.Set(buttonTextCenter.x, titleY);
+				}
+			}
 		}
 
 		// Draw title
@@ -244,6 +275,17 @@ namespace d2d
 		d2d::Window::DrawString(m_title, m_titleStyle.size * resolution.y, m_titleStyle.fontRefPtr,
 			{ d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
 		d2d::Window::PopMatrix();
+
+		if(drawSubtitle)
+		{
+			// Draw subtitle
+			d2d::Window::PushMatrix();
+			d2d::Window::Translate(subtitleCenter);
+			d2d::Window::SetColor(m_subtitleStyle.color);
+			d2d::Window::DrawString(m_subtitle, m_subtitleStyle.size * resolution.y, m_subtitleStyle.fontRefPtr,
+				{ d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
+			d2d::Window::PopMatrix();
+		}
 	}
 	void Menu::GetButtonTextCenter(unsigned button, b2Vec2& buttonTextCenter) const
 	{
