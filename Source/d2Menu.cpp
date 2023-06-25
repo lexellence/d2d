@@ -242,7 +242,7 @@ namespace d2d
 				d2d::Window::SetColor(m_buttonList[i].style.color);
 				d2d::Window::DrawRect(buttonRect, true);
 			}
-			d2d::Window::SetColor({ 0.5f, 0.5f, 0.5f, 0.5f });
+			d2d::Window::SetColor(m_buttonList[i].style.borderColor);
 			d2d::Window::DrawRect(buttonRect, false);
 
 			// Draw text
