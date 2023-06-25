@@ -15,7 +15,11 @@ namespace d2d
 {
 	const b2Vec2 MENU_BUTTON_OFFSET{ 0.0f, 0.008f };
 	const b2Vec2 MENU_BUTTON_SIZE{ 0.35f, 0.054f };
-	const float MENU_BUTTON_GAP{ 0.054f };
+	const float MENU_BUTTON_GAP = 0.054f;
+	const float MENU_TITLE_POSITION_FROM_BUTTON_TO_TOP_NO_SUBTITLE = 0.5f;
+	const float MENU_TITLE_POSITION_FROM_BUTTON_TO_TOP_WITH_SUBTITLE = 0.5f;
+	const float MENU_SUBTITLE_POSITION_FROM_BUTTON_TO_TOP = 0.25f;
+
 	struct ButtonStyle
 	{
 		TextStyle text;

@@ -261,14 +261,17 @@ namespace d2d
 				// Title/subtitle: Between first button text and top of screen
 				if(drawSubtitle)
 				{
-					float titleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 0.5f);
+					float titleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 
+						MENU_TITLE_POSITION_FROM_BUTTON_TO_TOP_WITH_SUBTITLE);
 					titleCenter.Set(buttonTextCenter.x, titleY);
-					float subtitleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 0.25f);
+					float subtitleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 
+						MENU_SUBTITLE_POSITION_FROM_BUTTON_TO_TOP);
 					subtitleCenter.Set(buttonTextCenter.x, subtitleY);
 				}
 				else
 				{
-					float titleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 0.5f);
+					float titleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 
+						MENU_TITLE_POSITION_FROM_BUTTON_TO_TOP_NO_SUBTITLE);
 					titleCenter.Set(buttonTextCenter.x, titleY);
 				}
 			}
