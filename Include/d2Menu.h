@@ -27,7 +27,11 @@ namespace d2d
 	{
 		std::string label;
 		ButtonStyle style;
-		int userData{};
+		union 
+		{
+			int i;
+			float f;
+		} userData[2];
 	};
 	class Menu
 	{
