@@ -226,14 +226,20 @@ namespace d2d
 		// Draw menu buttons
 		for(unsigned i = 0; i < m_buttonList.size(); ++i)
 		{
-			// Draw button with optional highlighting
 			d2d::Rect buttonRect;
 			GetButtonRect(i, buttonRect);
 			buttonRect.lowerBound = { buttonRect.lowerBound.x * resolution.x, buttonRect.lowerBound.y * resolution.y };
 			buttonRect.upperBound = { buttonRect.upperBound.x * resolution.x, buttonRect.upperBound.y * resolution.y };
 			if(i == m_currentButton)
 			{
+				// Draw highlight button background 
 				d2d::Window::SetColor(m_buttonList[i].style.highlightColor);
+				d2d::Window::DrawRect(buttonRect, true);
+			}
+			else
+			{
+				// Draw normal button background 
+				d2d::Window::SetColor(m_buttonList[i].style.color);
 				d2d::Window::DrawRect(buttonRect, true);
 			}
 			d2d::Window::SetColor({ 0.5f, 0.5f, 0.5f, 0.5f });
