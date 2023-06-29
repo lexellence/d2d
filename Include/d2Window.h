@@ -11,7 +11,8 @@
 #include "d2Color.h"
 #include "d2Rect.h"
 #include "d2Texture.h"
-#include "d2Text.h"
+#include "d2Font.h"
+#include "d2Utility.h"
 namespace d2d
 {
 	//+------------------\----------------------------------------
@@ -108,6 +109,17 @@ namespace d2d
 		void Init(const WindowDef& windowDef);
 		void Close();
 
+		// Load resources - return resource ID
+		unsigned LoadFont(const std::string& filePath);
+		unsigned LoadTexture(const std::string& filePath);
+		unsigned LoadTextureAtlas(const std::string& imagePath, const std::string& atlasXMLPath);
+		unsigned LoadTextureFromAtlas(unsigned atlasID, const std::string& name);
+		float GetWidthHeightRatio(unsigned textureID);
+
+		// Unload resources
+		void UnloadFonts();
+		void UnloadTextures();
+
 		// Accessors
 		float GetXYAspectRatio();
 		b2Vec2 GetScreenResolution();
@@ -145,9 +157,9 @@ namespace d2d
 		void DrawRect(const Rect& drawRect, bool fill=false);
 		void DrawLine(const b2Vec2& p1, const b2Vec2& p2);
 		void DrawLineStrip(const b2Vec2* vertices, unsigned vertexCount);
-		void DrawString(const std::string& text, float size, const FontReference* fontRefPtr, const AlignmentAnchor& anchor = {});
-        void DrawTexture(const Texture& texture, const b2Vec2& size);
-        void DrawTextureInRect(const Texture& texture, const Rect& drawRect);
+		void DrawString(unsigned fontID, const std::string& text, float size, const AlignmentAnchor& anchor = {});
+        void DrawTexture(unsigned textureID, const b2Vec2& size);
+        void DrawTextureInRect(unsigned textureID, const Rect& drawRect);
 		void ShowSimpleMessageBox(MessageBoxType type, const std::string& title, const std::string& message);
     }
 }

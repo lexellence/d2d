@@ -15,10 +15,10 @@ namespace d2d
 	//+--------------------------------\--------------------------------------
 	//|		   AnimationFrame		   |
 	//\--------------------------------/--------------------------------------
-	AnimationFrame::AnimationFrame(const Texture& texture,
+	AnimationFrame::AnimationFrame(unsigned texture,
 		float frameTime, const Color& tintColor,
 		const b2Vec2& relativeSize, const b2Vec2& relativePosition, float relativeAngle)
-		: m_texturePtr{ &texture },
+		: m_texture{ texture },
 		m_frameTime{ frameTime },
 		m_tintColor{ tintColor },
 		m_relativeSize{ relativeSize },
@@ -34,7 +34,7 @@ namespace d2d
 		Window::Translate(m_relativePosition);
 		Window::Rotate(m_relativeAngle);
 		Window::SetColor(animationColor * m_tintColor);
-		Window::DrawTexture(*m_texturePtr, finalSize);
+		Window::DrawTexture(m_texture, finalSize);
 		Window::PopMatrix();
 	}
 	float AnimationFrame::GetFrameTime() const

@@ -11,7 +11,7 @@
 #include "d2Network.h"
 #include "d2StringManip.h"
 #include "d2Utility.h"
-
+#include "d2Exception.h"
 namespace d2d
 {
 	//+--------------------------------\--------------------------------------

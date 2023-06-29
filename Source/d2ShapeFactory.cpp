@@ -10,7 +10,7 @@
 #include "d2pch.h"
 #include "d2ShapeFactory.h"
 #include "d2Utility.h"
-
+#include "d2Exception.h"
 namespace d2d
 {
 	// Load shapes from file and add to bodyMap, overwriting existing entries with the same name

@@ -111,10 +111,9 @@
     </ClCompile>
     <ClCompile Include="..\Source\d2Random.cpp" />
     <ClCompile Include="..\Source\d2Rect.cpp" />
-    <ClCompile Include="..\Source\d2Resource.cpp" />
     <ClCompile Include="..\Source\d2ShapeFactory.cpp" />
     <ClCompile Include="..\Source\d2StringManip.cpp" />
-    <ClCompile Include="..\Source\d2Text.cpp" />
+    <ClCompile Include="..\Source\d2Font.cpp" />
     <ClCompile Include="..\Source\d2Texture.cpp" />
     <ClCompile Include="..\Source\d2Timer.cpp" />
     <ClCompile Include="..\Source\d2Utility.cpp" />
@@ -124,6 +123,7 @@
     <ClInclude Include="..\Include\d2Animation.h" />
     <ClInclude Include="..\Include\d2Color.h" />
     <ClInclude Include="..\Include\d2d.h" />
+    <ClInclude Include="..\Include\d2Exception.h" />
     <ClInclude Include="..\Include\d2Hjson.h" />
     <ClInclude Include="..\Include\d2Main.h" />
     <ClInclude Include="..\Include\d2Menu.h" />
@@ -133,10 +133,9 @@
     <ClInclude Include="..\Include\d2Random.h" />
     <ClInclude Include="..\Include\d2Range.h" />
     <ClInclude Include="..\Include\d2Rect.h" />
-    <ClInclude Include="..\Include\d2Resource.h" />
     <ClInclude Include="..\Include\d2ShapeFactory.h" />
     <ClInclude Include="..\Include\d2StringManip.h" />
-    <ClInclude Include="..\Include\d2Text.h" />
+    <ClInclude Include="..\Include\d2Font.h" />
     <ClInclude Include="..\Include\d2Texture.h" />
     <ClInclude Include="..\Include\d2Timer.h" />
     <ClInclude Include="..\Include\d2Utility.h" />

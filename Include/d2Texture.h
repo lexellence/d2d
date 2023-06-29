@@ -8,9 +8,11 @@
 **
 \**************************************************************************************/
 #pragma once
-#include "d2Resource.h"
 namespace d2d
 {
+	//+----------------------\------------------------------------
+	//|  TextureCoordinates  |
+	//\----------------------/------------------------------------
 	struct TextureCoordinates
 	{
 		b2Vec2 lowerLeft;
@@ -18,53 +20,69 @@ namespace d2d
 		b2Vec2 upperRight;
 		b2Vec2 upperLeft;
 	};
-	static const TextureCoordinates NORMAL_FULL_TEXTURE_COORD
-	{
-		.lowerLeft{ 0.0f, 1.0f },
-		.lowerRight{ 1.0f, 1.0f },
-		.upperRight{ 1.0f, 0.0f },
-		.upperLeft{ 0.0f, 0.0f }
-	};
 
-	class TextureAtlas : public ResourceReference
-	{
-	public:
-		TextureAtlas(const std::string& imagePath, const std::string& atlasXMLPath);
-		virtual ~TextureAtlas();
-		GLuint GetGLTextureID() const;
-		float GetWidthToHeightRatio(const std::string& name) const;
-		const TextureCoordinates& GetTextureCoordinates(const std::string& name) const;
-		const b2Vec2& GetRelativeCenterOfMass(const std::string& name) const;
-	};
+	//+----------------------\------------------------------------
+	//|		 ITexture        | (interface)
+	//\----------------------/------------------------------------
+	//class ITexture
+	//{
+	//public:
+	//	virtual ~ITexture() {};
+	//	virtual GLuint GetGLTextureID() const = 0;
+	//	virtual const TextureCoordinates& GetTextureCoordinates() const = 0;
+	//	virtual float GetWidthToHeightRatio() const = 0;
+	//};
 
+	//+----------------------\------------------------------------
+	//|		  Texture        |
+	//\----------------------/------------------------------------
 	class Texture
 	{
 	public:
-		virtual ~Texture() {};
-		virtual GLuint GetGLTextureID() const = 0;
-		virtual const TextureCoordinates& GetTextureCoordinates() const = 0;
+		explicit Texture(const std::string& filePath);
+		Texture(GLuint glTextureID, const TextureCoordinates& textureCoords, float pixelWidthToHeightRatio);
+		virtual ~Texture();
+		virtual GLuint GetGLTextureID() const;
+		virtual const TextureCoordinates& GetTextureCoordinates() const;
+		virtual float GetWidthToHeightRatio() const;
+
+	private:
+		GLuint m_glTextureID;
+		TextureCoordinates m_textureCoords;
+		float m_widthToHeightRatio;
+		bool m_loadedTextureID;
 	};
+
+	//+----------------------\------------------------------------
+	//|  TextureAtlasEntry	 |
+	//\----------------------/------------------------------------
+	struct TextureAtlasEntry
+	{
+		TextureCoordinates textureCoords;
+		float widthToHeightRatio;
+		//b2Vec2 relativeCenterOfMass;
+	};
+
+	//+----------------------\------------------------------------
+	//|     TextureAtlas	 |
+	//\----------------------/------------------------------------
+	class TextureAtlas : public Texture
+	{
+	public:
+		explicit TextureAtlas(const std::string& imagePath, const std::string& atlasXMLPath);
+		const TextureAtlasEntry& GetEntry(const std::string& spriteName) const;
+
+	private:
+		std::unordered_map<std::string, TextureAtlasEntry> m_spriteMap;
+	};
+
+	//+--------------------------\--------------------------------
+	//|     TextureFromAtlas     |
+	//\--------------------------/--------------------------------
 	class TextureFromAtlas : public Texture
 	{
 	public:
 		TextureFromAtlas(const TextureAtlas& atlas, const std::string& name);
-		virtual GLuint GetGLTextureID() const;
-		virtual const TextureCoordinates& GetTextureCoordinates() const;
-		float GetWidthToHeightRatio() const;
-		const b2Vec2& GetRelativeCenterOfMass() const;
-	private:
-		const TextureAtlas *const m_atlasPtr;
-		std::string m_name;
+		//const b2Vec2& GetRelativeCenterOfMass() const;
 	};
-	class TextureStandalone : public ResourceReference, public Texture
-	{
-	public:
-		TextureStandalone(const std::string& imagePath);
-		virtual ~TextureStandalone();
-		virtual GLuint GetGLTextureID() const;
-		virtual const TextureCoordinates& GetTextureCoordinates() const;
-		float GetWidthToHeightRatio() const;
-	};
-
-	void GenerateGLTexture(SDL_Surface& surface, GLuint& texID, float& widthToHeightRatio, bool reversedSourcePixelFormat = false);
 }

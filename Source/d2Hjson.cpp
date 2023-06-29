@@ -9,7 +9,7 @@
 \**************************************************************************************/
 #include "d2pch.h"
 #include "d2Hjson.h"
-#include "d2Utility.h"
+#include "d2Exception.h"
 #include "d2NumberManip.h"
 #include "d2Color.h"
 namespace d2d

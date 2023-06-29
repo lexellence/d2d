@@ -49,32 +49,6 @@ const b2Transform operator*(float s, b2Transform t);
 
 namespace d2d
 {
-	// Exceptions
-	struct Exception : public std::runtime_error
-	{
-		explicit Exception(const std::string& message)
-			: std::runtime_error{ message }
-		{
-			d2LogError << message;
-		}
-	};
-	struct InitException : public Exception
-	{
-		using Exception::Exception;
-	};
-	struct AssertionFailedException : public Exception
-	{
-		using Exception::Exception;
-	};
-	struct HjsonFailedQueryException : public Exception
-	{
-		using Exception::Exception;
-	};
-	struct NetworkException : public Exception
-	{
-		using Exception::Exception;
-	};
-
 	// Physics
 	float CalculateKineticEnergy(b2Body* bodyPtr);
 

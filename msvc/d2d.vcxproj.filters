@@ -42,9 +42,6 @@
     <ClCompile Include="..\Source\d2Rect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\d2Resource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Source\d2ShapeFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -63,7 +60,7 @@
     <ClCompile Include="..\Source\d2Animation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\d2Text.cpp">
+    <ClCompile Include="..\Source\d2Font.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\d2Texture.cpp">
@@ -95,9 +92,6 @@
     <ClInclude Include="..\Include\d2Rect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\d2Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Include\d2ShapeFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -125,10 +119,13 @@
     <ClInclude Include="..\Include\d2Animation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Include\d2Text.h">
+    <ClInclude Include="..\Include\d2Font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Include\d2Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\d2Exception.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

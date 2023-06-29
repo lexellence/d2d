@@ -10,6 +10,7 @@
 #include "d2pch.h"
 #include "d2Main.h"
 #include "d2Utility.h"
+#include "d2Exception.h"
 #include "d2Window.h"
 #include "d2StringManip.h"
 namespace d2d

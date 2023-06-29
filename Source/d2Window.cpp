@@ -12,7 +12,7 @@
 #include "d2Utility.h"
 #include "d2Timer.h"
 #include "d2NumberManip.h"
-#include <optional>
+#include "d2Exception.h"
 namespace d2d
 {
 	namespace
@@ -27,12 +27,14 @@ namespace d2d
 		unsigned int m_boundGLTextureID;
 		bool m_fontBinded;
 		unsigned int m_boundFontID;
-		//int m_bindedDTXFontSize;
 		Timer m_timer;
 		float m_fpsUpdateInterval;
 		float m_fpsUpdateAccumulator;
 		unsigned int m_frames;
 		float m_fps;
+
+		std::vector<Font> m_fontList;
+		std::vector<Texture*> m_textureList;
 	}
 
     //+--------------------------\--------------------------------
@@ -143,6 +145,10 @@ namespace d2d
 		}
 		void Close()
 		{
+			// Unload resources
+			UnloadFonts();
+			UnloadTextures();
+
 			// Shutdown SDL_Image
 			if (m_sdlImageInitialized) {
 				IMG_Quit();
@@ -157,8 +163,64 @@ namespace d2d
 				m_windowPtr = nullptr;
 			}
 		}
+
+		//+----------------------\------------------------------------
+		//|	   Load Resources	 |
+		//\----------------------/------------------------------------
+		// Returns font ID
+		unsigned LoadFont(const std::string& filePath)
+		{
+			m_fontList.emplace_back(filePath);
+			return m_fontList.size() - 1;
+		}
+
+		// Returns texture ID
+		unsigned LoadTexture(const std::string& filePath)
+		{
+			m_textureList.push_back(new Texture(filePath));
+			return m_textureList.size() - 1;
+		}
+
+		// Returns textureAtlas ID
+		unsigned LoadTextureAtlas(const std::string& imagePath, const std::string& atlasXMLPath)
+		{
+			m_textureList.push_back(new TextureAtlas(imagePath, atlasXMLPath));
+			return m_textureList.size() - 1;
+		}
+
+		// Returns texture ID
+		unsigned LoadTextureFromAtlas(unsigned atlasID, const std::string& name)
+		{
+			m_textureList.push_back(new TextureFromAtlas(*dynamic_cast<TextureAtlas*>(m_textureList.at(atlasID)), name));
+			return m_textureList.size() - 1;
+		}
+		//+----------------------\------------------------------------
+		//|	GetWidthHeightRatio  |
+		//\----------------------/------------------------------------
+		float GetWidthHeightRatio(unsigned textureID)
+		{
+			return m_textureList.at(textureID)->GetWidthToHeightRatio();
+		}
+
+		//+----------------------\------------------------------------
+		//|	  Unload Resources	 |
+		//\----------------------/------------------------------------
+		void UnloadFonts()
+		{
+			m_fontList.clear();
+		}
+		void UnloadTextures()
+		{
+			for(Texture* texturePtr : m_textureList)
+			{
+				delete texturePtr;
+				texturePtr = 0;
+			}
+			m_textureList.clear();
+		}
+
 		//+-------------\---------------------------------------------
-		//|	Accessors	|
+		//|	 Accessors	|
 		//\-------------/---------------------------------------------
 		float GetXYAspectRatio()
 		{
@@ -450,33 +512,29 @@ namespace d2d
 				return translation;
 			}
 		}
-		void DrawString(const std::string& text, float size, const FontReference* fontPtr, const AlignmentAnchor& anchor)
+		void DrawString(unsigned fontID, const std::string& text, float size, const AlignmentAnchor& anchor)
 		{
-			if(!fontPtr)
-				return;
-
-			// Bind font if not already bound
-			if (!m_fontBinded || m_boundFontID != fontPtr->GetID())
-			{
-				// Find the loaded font with matching id, and enable it.
-				m_fontBinded = true;
-				m_boundFontID = fontPtr->GetID();
-				dtx_use_font(fontPtr->GetDTXFontPtr(), DTX_FONT_SIZE);
-			}
+			std::cout << "fontID " << fontID << std::endl;
+			std::cout << "fontList size=" << m_fontList.size() << std::endl;
+			dtx_use_font(m_fontList.at(fontID).GetDTXFontPtr(), DTX_FONT_SIZE);
+			std::cout << "DrawString0" << std::endl;
 
 			// Height 
 			float fontHeight;
 			{
-				float lineHeight{ dtx_line_height() };
+				//float lineHeight{ dtx_line_height() };
+				float lineHeight{ 10.0f };
 				float fontHeightToLineHeightRatio{ FONT_HEIGHT_TO_LINE_HEIGHT_RATIO };
 				fontHeight = fontHeightToLineHeightRatio * lineHeight;
 			}
 
 			// Padding
-			float fontPadding{ FONT_PADDING };
 			struct dtx_box stringDimensions;
+			std::cout << "DrawString1" << std::endl;
 			dtx_string_box(text.c_str(), &stringDimensions);
-			b2Vec2 translation = GetTextAlignmentTranslation(stringDimensions.width, stringDimensions.height, fontHeight, fontPadding, anchor);
+			std::cout << "DrawString2" << std::endl;
+			b2Vec2 translation = GetTextAlignmentTranslation(stringDimensions.width, stringDimensions.height, fontHeight, FONT_PADDING, anchor);
+			std::cout << "DrawString3" << std::endl;
 
 			// Adjust size on screen so that it looks the same at any window size
 			float scale{ size / (float)DTX_FONT_SIZE };
@@ -488,22 +546,23 @@ namespace d2d
 			dtx_string(text.c_str());
 			Window::PopMatrix();
 		}
-		void DrawTexture(const Texture& texture, const b2Vec2& size)
+		void DrawTexture(unsigned textureID, const b2Vec2& size)
 		{
 			Rect drawRect;
 			drawRect.SetCenter(b2Vec2_zero, size);
-			DrawTextureInRect(texture, drawRect);
+			DrawTextureInRect(textureID, drawRect);
 		}
-		void DrawTextureInRect(const Texture& texture, const Rect& drawRect)
+		void DrawTextureInRect(unsigned textureID, const Rect& drawRect)
 		{
-			GLuint glTextureID = texture.GetGLTextureID();
+			Texture* texturePtr = m_textureList.at(textureID);
+			GLuint glTextureID = texturePtr->GetGLTextureID();
 			if (!m_textureBinded || m_boundGLTextureID != glTextureID)
 			{
 				glBindTexture(GL_TEXTURE_2D, glTextureID);
 				m_boundGLTextureID = glTextureID;
 			}
 
-            TextureCoordinates textureCoords = texture.GetTextureCoordinates();
+            TextureCoordinates textureCoords = texturePtr->GetTextureCoordinates();
             glBegin(GL_QUADS);
             {
                 glTexCoord2f(textureCoords.lowerLeft.x, textureCoords.lowerLeft.y);
@@ -519,13 +578,13 @@ namespace d2d
         }
 		void ShowSimpleMessageBox(MessageBoxType type, const std::string& title, const std::string& message)
 		{
-			if(m_windowDef.fullScreen)
+			if(m_windowPtr && m_windowDef.fullScreen)
 			{
 				SDL_SetWindowFullscreen(m_windowPtr, 0);
 				SDL_GL_SwapWindow(m_windowPtr);
 			}
 			SDL_ShowSimpleMessageBox((Uint32)type, title.c_str(), message.c_str(), m_windowPtr);
-			if(m_windowDef.fullScreen)
+			if(m_windowPtr && m_windowDef.fullScreen)
 			{
 				SDL_SetWindowFullscreen(m_windowPtr, m_windowDef.gl.fullscreenModeFlag);
 				SDL_GL_SwapWindow(m_windowPtr);
