@@ -22,11 +22,5 @@ namespace d2d
 		virtual ~FontReference();
 		dtx_font* GetDTXFontPtr() const;
 	};
-	struct TextStyle
-	{
-		FontReference const* fontRefPtr;
-		Color color;
-		float size;
-	};
 }
 

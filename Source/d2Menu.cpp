@@ -22,6 +22,42 @@ namespace d2d
 		while(!m_buttonsPressed.empty())
 			m_buttonsPressed.pop();
 	}
+	void Menu::SetBackgroundColor(const d2d::Color& color)
+	{
+		m_backgroundColor = color;
+	}
+	void Menu::SetTitleFont(FontReference* fontPtr)
+	{
+		m_titleFontPtr = fontPtr;
+	}
+	void Menu::SetSubtitleFont(FontReference* fontPtr)
+	{
+		m_subtitleFontPtr = fontPtr;
+	}
+	void Menu::SetButtonFont(FontReference* fontPtr)
+	{
+		m_buttonFontPtr = fontPtr;
+	}
+	void Menu::SetTitleColor(const d2d::Color& color)
+	{
+		m_titleColor = color;
+	}
+	void Menu::SetSubtitleColor(const d2d::Color& color)
+	{
+		m_subtitleColor = color;
+	}
+	void Menu::SetTitleTextSize(float size)
+	{
+		m_titleTextSize = size;
+	}
+	void Menu::SetSubtitleTextSize(float size)
+	{
+		m_subtitleTextSize = size;
+	}
+	void Menu::SetButtonTextSize(float size)
+	{
+		m_buttonTextSize = size;
+	}
 	void Menu::AddButton(const MenuButton& button, bool startSelected)
 	{
 		m_buttonList.push_back(button);
@@ -81,11 +117,6 @@ namespace d2d
 	{
 		m_title = title;
 	}
-	void Menu::SetTitleStyle(const TextStyle& style)
-	{
-		m_titleStyle = style;
-	}
-
 	const std::string& Menu::GetSubtitle() const
 	{
 		return m_subtitle;
@@ -93,24 +124,6 @@ namespace d2d
 	void Menu::SetSubtitle(const std::string& title)
 	{
 		m_subtitle = title;
-	}
-	void Menu::SetSubtitleStyle(const TextStyle& style)
-	{
-		m_subtitleStyle = style;
-	}
-
-	void Menu::SetBackgroundColor(const d2d::Color& color)
-	{
-		m_backgroundColor = color;
-	}
-	void Menu::Set(const std::string& title, const TextStyle& titleStyle,
-		const d2d::Color& backgroundColor,
-		const std::vector<MenuButton> buttonList)
-	{
-		SetTitle(title);
-		SetTitleStyle(titleStyle);
-		SetBackgroundColor(backgroundColor);
-		SetButtons(buttonList);
 	}
 	void Menu::ProcessEvent(const SDL_Event& event)
 	{
@@ -230,47 +243,51 @@ namespace d2d
 			GetButtonRect(i, buttonRect);
 			buttonRect.lowerBound = { buttonRect.lowerBound.x * resolution.x, buttonRect.lowerBound.y * resolution.y };
 			buttonRect.upperBound = { buttonRect.upperBound.x * resolution.x, buttonRect.upperBound.y * resolution.y };
+
+			// Draw button background 
 			if(i == m_currentButton)
-			{
-				// Draw highlight button background 
-				d2d::Window::SetColor(m_buttonList[i].style.highlightColor);
-				d2d::Window::DrawRect(buttonRect, true);
-			}
+				d2d::Window::SetColor(m_buttonList[i].highlightStyle.backgroundColor);
 			else
-			{
-				// Draw normal button background 
-				d2d::Window::SetColor(m_buttonList[i].style.color);
-				d2d::Window::DrawRect(buttonRect, true);
-			}
-			d2d::Window::SetColor(m_buttonList[i].style.borderColor);
+				d2d::Window::SetColor(m_buttonList[i].style.backgroundColor);
+			d2d::Window::DrawRect(buttonRect, true);
+
+			// Draw button border
+			if(i == m_currentButton)
+				d2d::Window::SetColor(m_buttonList[i].highlightStyle.borderColor);
+			else
+				d2d::Window::SetColor(m_buttonList[i].style.borderColor);
 			d2d::Window::DrawRect(buttonRect, false);
 
-			// Draw text
+			// Draw button text
 			b2Vec2 buttonTextCenter;
 			GetButtonTextCenter(i, buttonTextCenter);
 			buttonTextCenter = { buttonTextCenter.x * resolution.x, buttonTextCenter.y * resolution.y };
 			d2d::Window::PushMatrix();
 			d2d::Window::Translate(buttonTextCenter);
-			d2d::Window::SetColor(m_buttonList[i].style.text.color);
-			d2d::Window::DrawString(m_buttonList[i].label, m_buttonList[i].style.text.size * resolution.y,
-				m_buttonList[i].style.text.fontRefPtr, { d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
+			if(i == m_currentButton)
+				d2d::Window::SetColor(m_buttonList[i].highlightStyle.textColor);
+			else
+				d2d::Window::SetColor(m_buttonList[i].style.textColor);
+			if(m_buttonFontPtr)
+				d2d::Window::DrawString(m_buttonList[i].label, m_buttonTextSize * resolution.y,
+					*m_buttonFontPtr, { d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
 			d2d::Window::PopMatrix();
 
+			// Position title/subtitle
 			if(i == 0)
 			{
-				// Title/subtitle: Between first button text and top of screen
 				if(drawSubtitle)
 				{
-					float titleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 
+					float titleY = d2d::Lerp(buttonTextCenter.y, resolution.y,
 						MENU_TITLE_POSITION_FROM_BUTTON_TO_TOP_WITH_SUBTITLE);
 					titleCenter.Set(buttonTextCenter.x, titleY);
-					float subtitleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 
+					float subtitleY = d2d::Lerp(buttonTextCenter.y, resolution.y,
 						MENU_SUBTITLE_POSITION_FROM_BUTTON_TO_TOP);
 					subtitleCenter.Set(buttonTextCenter.x, subtitleY);
 				}
 				else
 				{
-					float titleY = d2d::Lerp(buttonTextCenter.y, resolution.y, 
+					float titleY = d2d::Lerp(buttonTextCenter.y, resolution.y,
 						MENU_TITLE_POSITION_FROM_BUTTON_TO_TOP_NO_SUBTITLE);
 					titleCenter.Set(buttonTextCenter.x, titleY);
 				}
@@ -280,9 +297,10 @@ namespace d2d
 		// Draw title
 		d2d::Window::PushMatrix();
 		d2d::Window::Translate(titleCenter);
-		d2d::Window::SetColor(m_titleStyle.color);
-		d2d::Window::DrawString(m_title, m_titleStyle.size * resolution.y, m_titleStyle.fontRefPtr,
-			{ d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
+		d2d::Window::SetColor(m_titleColor);
+		if(m_titleFontPtr)
+			d2d::Window::DrawString(m_title, m_titleTextSize * resolution.y,
+				*m_titleFontPtr, { d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
 		d2d::Window::PopMatrix();
 
 		if(drawSubtitle)
@@ -290,9 +308,10 @@ namespace d2d
 			// Draw subtitle
 			d2d::Window::PushMatrix();
 			d2d::Window::Translate(subtitleCenter);
-			d2d::Window::SetColor(m_subtitleStyle.color);
-			d2d::Window::DrawString(m_subtitle, m_subtitleStyle.size * resolution.y, m_subtitleStyle.fontRefPtr,
-				{ d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
+			d2d::Window::SetColor(m_subtitleColor);
+			if(m_subtitleFontPtr)
+				d2d::Window::DrawString(m_subtitle, m_subtitleTextSize * resolution.y,
+					*m_subtitleFontPtr, { d2d::AlignmentAnchorX::CENTER, AlignmentAnchorY::CENTER });
 			d2d::Window::PopMatrix();
 		}
 	}

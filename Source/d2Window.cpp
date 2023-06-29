@@ -450,18 +450,15 @@ namespace d2d
 				return translation;
 			}
 		}
-		void DrawString(const std::string& text, float size, const FontReference* fontPtr, const AlignmentAnchor& anchor)
+		void DrawString(const std::string& text, float size, const FontReference& font, const AlignmentAnchor& anchor)
 		{
-			if(!fontPtr)
-				return;
-
 			// Bind font if not already bound
-			if (!m_fontBinded || m_boundFontID != fontPtr->GetID())
+			if (!m_fontBinded || m_boundFontID != font.GetID())
 			{
 				// Find the loaded font with matching id, and enable it.
 				m_fontBinded = true;
-				m_boundFontID = fontPtr->GetID();
-				dtx_use_font(fontPtr->GetDTXFontPtr(), DTX_FONT_SIZE);
+				m_boundFontID = font.GetID();
+				dtx_use_font(font.GetDTXFontPtr(), DTX_FONT_SIZE);
 			}
 
 			// Height 
