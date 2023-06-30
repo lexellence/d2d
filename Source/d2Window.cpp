@@ -33,48 +33,62 @@ namespace d2d
 		float m_fpsUpdateAccumulator;
 		unsigned int m_frames;
 		float m_fps;
+
+		ViewRect m_viewport;
+		ViewRect ScreenRectToViewRect(const Rect& proportionOfScreenRect)
+		{
+			b2Vec2 screenSize = Window::GetScreenSize();
+			ViewRect view;
+			float x = proportionOfScreenRect.lowerBound.x * (screenSize.x - 1);
+			float y = proportionOfScreenRect.lowerBound.y * (screenSize.y - 1);
+			view.x = (int)(x + 0.5f);
+			view.y = (int)(y + 0.5f);
+			view.width = (int)(proportionOfScreenRect.GetWidth() * screenSize.x + 0.5f);
+			view.height = (int)(proportionOfScreenRect.GetHeight() * screenSize.y + 0.5f);
+			return view;
+		}
 	}
 
-    //+--------------------------\--------------------------------
-    //|          Window          |
-    //\--------------------------/--------------------------------
-    namespace Window
-    {
-        //+----------------------\------------------------------------
-        //|	Startup and shutdown |
-        //\----------------------/------------------------------------
-        void Init(const WindowDef &windowDef)
-        {
-            // Save settings
-            m_windowDef = windowDef;
+	//+--------------------------\--------------------------------
+	//|          Window          |
+	//\--------------------------/--------------------------------
+	namespace Window
+	{
+		//+----------------------\------------------------------------
+		//|	Startup and shutdown |
+		//\----------------------/------------------------------------
+		void Init(const WindowDef &windowDef)
+		{
+			// Save settings
+			m_windowDef = windowDef;
 
-            // Make sure SDL video subsystem is initialized
-            if (!SDL_WasInit(SDL_INIT_VIDEO))
-                throw InitException{
-                    "Failed to initialize window: SDL video system not yet initialized"};
+			// Make sure SDL video subsystem is initialized
+			if(!SDL_WasInit(SDL_INIT_VIDEO))
+				throw InitException{
+				"Failed to initialize window: SDL video system not yet initialized"};
 
-            // Get rid of previous window, if it exists.
-            Close();
+			// Get rid of previous window, if it exists.
+			Close();
 
-            // SDL_image
-            {
-                SDL_ClearError();
-                int imageExtensionsLoaded = IMG_Init(windowDef.imageExtensions);
-                if ((imageExtensionsLoaded & windowDef.imageExtensions) != windowDef.imageExtensions)
-                    throw InitException{ "Failed to load all requested imageExtensions: "s + IMG_GetError() };
-                m_sdlImageInitialized = true;
-            }
+			// SDL_image
+			{
+				SDL_ClearError();
+				int imageExtensionsLoaded = IMG_Init(windowDef.imageExtensions);
+				if((imageExtensionsLoaded & windowDef.imageExtensions) != windowDef.imageExtensions)
+					throw InitException{ "Failed to load all requested imageExtensions: "s + IMG_GetError() };
+				m_sdlImageInitialized = true;
+			}
 
-            // OpenGL settings
-            {
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, m_windowDef.gl.profileMask);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_windowDef.gl.versionMajor);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_windowDef.gl.versionMinor);
-                SDL_GL_SetAttribute(SDL_GL_RED_SIZE, m_windowDef.colorChannelBits[0]);
-                SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, m_windowDef.colorChannelBits[1]);
-                SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, m_windowDef.colorChannelBits[2]);
-                SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, m_windowDef.colorChannelBits[3]);
-                SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, m_windowDef.doubleBuffer);
+			// OpenGL settings
+			{
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, m_windowDef.gl.profileMask);
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_windowDef.gl.versionMajor);
+				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_windowDef.gl.versionMinor);
+				SDL_GL_SetAttribute(SDL_GL_RED_SIZE, m_windowDef.colorChannelBits[0]);
+				SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, m_windowDef.colorChannelBits[1]);
+				SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, m_windowDef.colorChannelBits[2]);
+				SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, m_windowDef.colorChannelBits[3]);
+				SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, m_windowDef.doubleBuffer);
 
 				int samples = d2d::GetClamped(m_windowDef.antiAliasingSamples, VALID_ANTI_ALIASING_SAMPLES);
 				if(samples >= MIN_SAMPLES_TO_ENABLE_ANTI_ALIASING)
@@ -86,25 +100,25 @@ namespace d2d
 					SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
 			}
 
-            // Create window
-            {
-                Uint32 windowFlags{ SDL_WINDOW_OPENGL };
-                if(m_windowDef.fullScreen)
-                    windowFlags |= m_windowDef.gl.fullscreenModeFlag;
-                else
-                    windowFlags |= m_windowDef.gl.windowedModeFlag;
+			// Create window
+			{
+				Uint32 windowFlags{ SDL_WINDOW_OPENGL };
+				if(m_windowDef.fullScreen)
+					windowFlags |= m_windowDef.gl.fullscreenModeFlag;
+				else
+					windowFlags |= m_windowDef.gl.windowedModeFlag;
 
 				SDL_ClearError();
-				m_windowPtr = SDL_CreateWindow(m_windowDef.title.c_str(), 
+				m_windowPtr = SDL_CreateWindow(m_windowDef.title.c_str(),
 					m_windowDef.x, m_windowDef.y, m_windowDef.width, m_windowDef.height, windowFlags);
 				if(!m_windowPtr)
-					throw InitException{ std::string{"SDL_CreateWindow failed: "} +SDL_GetError() };
+					throw InitException{ std::string{"SDL_CreateWindow failed: "} + SDL_GetError() };
 			}
 
 			// Create OpenGL context
 			SDL_ClearError();
 			if(!(m_glContext = SDL_GL_CreateContext(m_windowPtr)))
-				throw InitException{ std::string{"SDL_GL_CreateContext failed: "} +SDL_GetError() };
+				throw InitException{ std::string{"SDL_GL_CreateContext failed: "} + SDL_GetError() };
 
 			// Set vsync
 			if(m_windowDef.vsync)
@@ -140,17 +154,26 @@ namespace d2d
 			m_fpsUpdateAccumulator = 0.0f;
 			m_frames = 0U;
 			m_fps = 0.0f;
+
+			// Initial viewport values
+			int viewport[4];
+			glGetIntegerv(GL_VIEWPORT, viewport);
+			m_viewport.x = viewport[0];
+			m_viewport.y = viewport[1];
+			m_viewport.width = viewport[2];
+			m_viewport.height = viewport[3];
 		}
 		void Close()
 		{
 			// Shutdown SDL_Image
-			if (m_sdlImageInitialized) {
+			if(m_sdlImageInitialized)
+			{
 				IMG_Quit();
 				m_sdlImageInitialized = false;
 			}
 
 			// If there is a window, get rid of it
-			if (m_windowPtr)
+			if(m_windowPtr)
 			{
 				SDL_DestroyWindow(m_windowPtr);
 				SDL_ClearError();
@@ -160,15 +183,27 @@ namespace d2d
 		//+-------------\---------------------------------------------
 		//|	Accessors	|
 		//\-------------/---------------------------------------------
-		float GetXYAspectRatio()
+		ViewRect GetViewRect(const Rect& proportionOfScreenRect)
+		{
+			return m_viewport;
+		}
+		float GetViewXYAspectRatio()
+		{
+			return ((float)m_viewport.width / (float)m_viewport.height);
+		}
+		float GetScreenXYAspectRatio()
 		{
 			int width, height;
 			SDL_GL_GetDrawableSize(m_windowPtr, &width, &height);
-			if (height == 0)
+			if(height == 0)
 				height = 1;
 			return ((float)width / (float)height);
 		}
-		b2Vec2 GetScreenResolution()
+		b2Vec2 GetViewSize()
+		{
+			return{ (float)m_viewport.width, (float)m_viewport.height };
+		}
+		b2Vec2 GetScreenSize()
 		{
 			int width, height;
 			SDL_GL_GetDrawableSize(m_windowPtr, &width, &height);
@@ -180,14 +215,24 @@ namespace d2d
 		}
 		b2Vec2 GetMousePositionAsPercentOfWindow(Sint32 eventMouseX, Sint32 eventMouseY)
 		{
-			b2Vec2 resolution{ d2d::Window::GetScreenResolution() };
+			b2Vec2 resolution{ GetScreenSize() };
 			return { (float)eventMouseX / resolution.x, (1 - ((float)eventMouseY / resolution.y)) };
+		}
+		b2Vec2 GetMousePositionAsPercentOfView(Sint32 eventMouseX, Sint32 eventMouseY, const Rect& proportionOfScreenRect)
+		{
+			b2Vec2 resolution{ GetScreenSize() };
+			b2Vec2 mousePosition = GetMousePositionAsPercentOfWindow(eventMouseX, eventMouseY);
+			b2Vec2 mouseViewPosition;
+			mouseViewPosition.x = mousePosition.x - proportionOfScreenRect.lowerBound.x;
+			mouseViewPosition.y = mousePosition.y - proportionOfScreenRect.lowerBound.y;
+			return { mouseViewPosition.x / proportionOfScreenRect.GetWidth(), 
+				mouseViewPosition.y / proportionOfScreenRect.GetHeight() };
 		}
 		b2Vec2 GetMousePosition()
 		{
 			int x, y;
 			SDL_GetMouseState(&x, &y);
-			b2Vec2 resolution{ d2d::Window::GetScreenResolution() };
+			b2Vec2 resolution{ d2d::Window::GetScreenSize() };
 			return GetMousePositionAsPercentOfWindow(x, y);
 		}
 		const WindowDef& GetWindowDef()
@@ -202,11 +247,20 @@ namespace d2d
 		//+-------------\---------------------------------------------
 		//|	Modifiers	|
 		//\-------------/---------------------------------------------
-		void Resize(int width, int height)
+		void SetViewRect(const Rect& proportionOfScreenRect)
 		{
-			if(height <= 0)   
-				height = 1;
-			glViewport(0, 0, (GLsizei)width, (GLsizei)height);
+			m_viewport = ScreenRectToViewRect(proportionOfScreenRect);
+			glViewport(m_viewport.x, m_viewport.y, m_viewport.width, m_viewport.height);
+		}
+		void SetCameraRect(const Rect& rect)
+		{
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			gluOrtho2D(
+				rect.lowerBound.x,		// left
+				rect.upperBound.x,		// right
+				rect.lowerBound.y,		// bottom
+				rect.upperBound.y);		// top
 		}
 		void SetClearColor(const Color& newColor)
 		{
@@ -218,20 +272,10 @@ namespace d2d
 		}
 		void SetFPSInterval(float interval)
 		{
-			if (interval < 0.0f)
+			if(interval < 0.0f)
 				m_fpsUpdateInterval = 0.0f;
 			else
 				m_fpsUpdateInterval = interval;
-		}
-		void SetCameraRect(const Rect& rect)
-		{
-			// Setup a 2D viewport based on camera dimensions
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
-			gluOrtho2D(rect.lowerBound.x,		// left
-				rect.upperBound.x,		// right
-				rect.lowerBound.y,		// bottom
-				rect.upperBound.y);		// top
 		}
 		void SetColor(const d2d::Color & newColor)
 		{
@@ -252,7 +296,7 @@ namespace d2d
 		}
 		void EnableTextures()
 		{
-			if (!m_texturesEnabled)
+			if(!m_texturesEnabled)
 			{
 				glEnable(GL_TEXTURE_2D);
 				m_texturesEnabled = true;
@@ -260,7 +304,7 @@ namespace d2d
 		}
 		void DisableTextures()
 		{
-			if (m_texturesEnabled)
+			if(m_texturesEnabled)
 			{
 				glDisable(GL_TEXTURE_2D);
 				m_texturesEnabled = false;
@@ -268,7 +312,7 @@ namespace d2d
 		}
 		void EnableBlending()
 		{
-			if (!m_blendingEnabled)
+			if(!m_blendingEnabled)
 			{
 				// Enable blending
 				glEnable(GL_BLEND);
@@ -278,7 +322,7 @@ namespace d2d
 		}
 		void DisableBlending()
 		{
-			if (m_blendingEnabled)
+			if(m_blendingEnabled)
 			{
 				glDisable(GL_BLEND);
 				m_blendingEnabled = false;
@@ -300,7 +344,7 @@ namespace d2d
 			++m_frames;
 			m_timer.Update();
 			m_fpsUpdateAccumulator += m_timer.Getdt();
-			if (m_fpsUpdateAccumulator > 0.0f &&
+			if(m_fpsUpdateAccumulator > 0.0f &&
 				m_fpsUpdateAccumulator >= m_fpsUpdateInterval)
 			{
 				m_fps = m_frames / m_fpsUpdateAccumulator;
@@ -309,7 +353,7 @@ namespace d2d
 			}
 
 			// Swap buffers
-			if (m_windowPtr)
+			if(m_windowPtr)
 				SDL_GL_SwapWindow(m_windowPtr);
 		}
 		void PushMatrix()
@@ -352,7 +396,7 @@ namespace d2d
 			glBegin(fill ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
 
 			// Triangle fans need to start at the center
-			if (fill)
+			if(fill)
 				glVertex2f(0.0f, 0.0f);
 
 			// Make sure radius is positive
@@ -365,26 +409,26 @@ namespace d2d
 			float radiansPerVertex{ TWO_PI / (float)numVertices };
 
 			// Specify vertices
-			for (unsigned i = 0; i < numVertices; ++i)
+			for(unsigned i = 0; i < numVertices; ++i)
 			{
 				float theta{ i * radiansPerVertex };
 				glVertex2f(cosf(theta) * radius, sinf(theta) * radius);
 			}
 
 			// Only the triangle fan needs to close the loop
-			if (fill)
+			if(fill)
 				glVertex2f(radius, 0.0f);
 			glEnd();
 			PopMatrix();
 		}
 		void DrawPolygon(const b2Vec2 * vertices, unsigned vertexCount, bool fill)
 		{
-			if (!vertices || !vertexCount)
+			if(!vertices || !vertexCount)
 				return;
 
 			// Polygon for filled mode, line loop for outline mode
 			glBegin(fill ? GL_POLYGON : GL_LINE_LOOP);
-			for (unsigned i = 0; i < vertexCount; ++i)
+			for(unsigned i = 0; i < vertexCount; ++i)
 				glVertex2f(vertices[i].x, vertices[i].y);
 			glEnd();
 		}
@@ -407,11 +451,11 @@ namespace d2d
 		}
 		void DrawLineStrip(const b2Vec2* vertices, unsigned vertexCount)
 		{
-			if (!vertices || !vertexCount)
+			if(!vertices || !vertexCount)
 				return;
 
 			glBegin(GL_LINE_STRIP);
-			for (unsigned i = 0; i < vertexCount; ++i)
+			for(unsigned i = 0; i < vertexCount; ++i)
 				glVertex2f(vertices[i].x, vertices[i].y);
 			glEnd();
 		}
@@ -453,7 +497,7 @@ namespace d2d
 		void DrawString(const std::string& text, float size, const FontReference& font, const AlignmentAnchor& anchor)
 		{
 			// Bind font if not already bound
-			if (!m_fontBinded || m_boundFontID != font.GetID())
+			if(!m_fontBinded || m_boundFontID != font.GetID())
 			{
 				// Find the loaded font with matching id, and enable it.
 				m_fontBinded = true;
@@ -494,26 +538,26 @@ namespace d2d
 		void DrawTextureInRect(const Texture& texture, const Rect& drawRect)
 		{
 			GLuint glTextureID = texture.GetGLTextureID();
-			if (!m_textureBinded || m_boundGLTextureID != glTextureID)
+			if(!m_textureBinded || m_boundGLTextureID != glTextureID)
 			{
 				glBindTexture(GL_TEXTURE_2D, glTextureID);
 				m_boundGLTextureID = glTextureID;
 			}
 
-            TextureCoordinates textureCoords = texture.GetTextureCoordinates();
-            glBegin(GL_QUADS);
-            {
-                glTexCoord2f(textureCoords.lowerLeft.x, textureCoords.lowerLeft.y);
-                glVertex2f(drawRect.lowerBound.x, drawRect.lowerBound.y);
-                glTexCoord2f(textureCoords.lowerRight.x, textureCoords.lowerRight.y);
-                glVertex2f(drawRect.upperBound.x, drawRect.lowerBound.y);
-                glTexCoord2f(textureCoords.upperRight.x, textureCoords.upperRight.y);
-                glVertex2f(drawRect.upperBound.x, drawRect.upperBound.y);
-                glTexCoord2f(textureCoords.upperLeft.x, textureCoords.upperLeft.y);
-                glVertex2f(drawRect.lowerBound.x, drawRect.upperBound.y);
-            }
-            glEnd();
-        }
+			TextureCoordinates textureCoords = texture.GetTextureCoordinates();
+			glBegin(GL_QUADS);
+			{
+				glTexCoord2f(textureCoords.lowerLeft.x, textureCoords.lowerLeft.y);
+				glVertex2f(drawRect.lowerBound.x, drawRect.lowerBound.y);
+				glTexCoord2f(textureCoords.lowerRight.x, textureCoords.lowerRight.y);
+				glVertex2f(drawRect.upperBound.x, drawRect.lowerBound.y);
+				glTexCoord2f(textureCoords.upperRight.x, textureCoords.upperRight.y);
+				glVertex2f(drawRect.upperBound.x, drawRect.upperBound.y);
+				glTexCoord2f(textureCoords.upperLeft.x, textureCoords.upperLeft.y);
+				glVertex2f(drawRect.lowerBound.x, drawRect.upperBound.y);
+			}
+			glEnd();
+		}
 		void ShowSimpleMessageBox(MessageBoxType type, const std::string& title, const std::string& message)
 		{
 			if(m_windowDef.fullScreen)
@@ -528,5 +572,5 @@ namespace d2d
 				SDL_GL_SwapWindow(m_windowPtr);
 			}
 		}
-    } // namespace Window
+	} // namespace Window
 } // namespace d2d

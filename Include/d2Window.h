@@ -85,6 +85,13 @@ namespace d2d
 		D2D_WARN = SDL_MESSAGEBOX_WARNING,
 		D2D_ERROR = SDL_MESSAGEBOX_ERROR
 	};
+
+	struct ViewRect
+	{
+		int x, y;
+		int width, height;
+	};
+
 	//+------------------\----------------------------------------
 	//|	    Window	     |
 	//\------------------/----------------------------------------
@@ -109,19 +116,23 @@ namespace d2d
 		void Close();
 
 		// Accessors
-		float GetXYAspectRatio();
-		b2Vec2 GetScreenResolution();
+		ViewRect GetViewRect(const Rect& proportionOfScreenRect);
+		float GetViewXYAspectRatio();
+		float GetScreenXYAspectRatio();
+		b2Vec2 GetViewSize();
+		b2Vec2 GetScreenSize();
 		float GetFPS();
 		b2Vec2 GetMousePositionAsPercentOfWindow(Sint32 eventMouseX, Sint32 eventMouseY);
+		b2Vec2 GetMousePositionAsPercentOfView(Sint32 eventMouseX, Sint32 eventMouseY, const Rect& proportionOfScreenRect);
 		b2Vec2 GetMousePosition();
 		const WindowDef& GetWindowDef();
 
 		// Modifiers
-		void Resize(int width, int height);
+		void SetViewRect(const Rect& proportionOfScreenRect = { b2Vec2_zero, {1.0f,1.0f} });
+		void SetCameraRect(const Rect& rect);
 		void SetClearColor(const Color& newColor);
 		void SetShowCursor(bool enabled);
 		void SetFPSInterval(float interval);
-		void SetCameraRect(const Rect& rect);
 		void SetPointSize(float size);
 		void SetLineWidth(float width);
 		void SetColor(const Color& newColor);

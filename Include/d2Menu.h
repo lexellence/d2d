@@ -40,35 +40,11 @@ namespace d2d
 	class Menu
 	{
 	public:
-		//void Init();
-		//void AddButton(const MenuButton& button, bool startSelected = false);
-		//void ClearButtons();
-		//void RemoveButton(const std::string& label);
-		//void ReplaceButton(const std::string& oldLabel, const MenuButton& newButton);
-		//void SetButtons(const std::vector<MenuButton>& buttonList);
-		//unsigned GetSelectedButtonIndex() const;
-		//void SetSelectedButton(unsigned buttonIndex);
-		//const std::string& GetTitle() const;
-		//void SetTitle(const std::string& title = ""s);
-		//void SetTitleStyle(const TextStyle& style);
-		//const std::string& GetSubtitle() const;
-		//void SetSubtitle(const std::string& title = ""s);
-		//void SetSubtitleStyle(const TextStyle& style);
-		//void SetBackgroundColor(const d2d::Color& color);
-
-		//void Set(const std::string& title, const TextStyle& titleStyle,
-		//	const d2d::Color& backgroundColor,
-		//	const std::vector<MenuButton> buttonList);
-
-		//void ProcessEvent(const SDL_Event& event);
-		//bool PollPressedButton(std::string& labelOut);
-		//bool PollPressedButton(MenuButton& buttonOut);
-		//void Draw() const;
-
 		void Init();
-		void SetBackgroundColor(const d2d::Color& color = {});
-		void SetTitleColor(const d2d::Color& color);
-		void SetSubtitleColor(const d2d::Color& color);
+		void SetViewRect(const Rect& proportionOfScreenRect = { b2Vec2_zero, {1.0f,1.0f} });
+		void SetBackgroundColor(const Color& color = {});
+		void SetTitleColor(const Color& color);
+		void SetSubtitleColor(const Color& color);
 		void SetTitleFont(FontReference* fontPtr);
 		void SetSubtitleFont(FontReference* fontPtr);
 		void SetButtonFont(FontReference* fontPtr);
@@ -97,9 +73,10 @@ namespace d2d
 		void SelectNext();
 		void PressSelected();
 		void GetButtonTextCenter(unsigned button, b2Vec2& buttonTextCenter) const;
-		void GetButtonRect(unsigned button, d2d::Rect& buttonRect) const;
+		void GetButtonRect(unsigned button, Rect& buttonRect) const;
 
-		d2d::Color m_backgroundColor;
+		Rect m_proportionOfScreenRect{ {0.0f,0.0f},{1.0f,1.0f} };
+		Color m_backgroundColor;
 		std::string m_title;
 		std::string m_subtitle;
 		FontReference* m_titleFontPtr{};
