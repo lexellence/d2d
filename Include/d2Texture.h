@@ -66,5 +66,5 @@ namespace d2d
 		float GetWidthToHeightRatio() const;
 	};
 
-	void GenerateGLTexture(SDL_Surface& surface, GLuint& texID, float& widthToHeightRatio, bool reversedSourcePixelFormat = false);
+	void GenerateGLTexture(SDL_Surface& surface, GLuint& texID, float& widthToHeightRatio);
 }

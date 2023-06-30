@@ -67,7 +67,7 @@ namespace d2d
 	//\----------------------/------------------------------------
 	//	Register SDL_Surface as OpenGL texture,
 	//	save gl id and aspect ratio in the output parameters.
-	void GenerateGLTexture(SDL_Surface& surface, GLuint &texID, float& widthToHeightRatio, bool reversedSourcePixelFormat)
+	void GenerateGLTexture(SDL_Surface& surface, GLuint &texID, float& widthToHeightRatio)
 	{
 		if (surface.h == 0)
 			widthToHeightRatio = 1.0f;
