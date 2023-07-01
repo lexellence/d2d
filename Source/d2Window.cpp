@@ -183,7 +183,11 @@ namespace d2d
 		//+-------------\---------------------------------------------
 		//|	Accessors	|
 		//\-------------/---------------------------------------------
-		ViewRect GetViewRect(const Rect& proportionOfScreenRect)
+		ViewRect GetCurrentViewRect()
+		{
+			return m_viewport;
+		}
+		ViewRect CalculateViewRect(const Rect& proportionOfScreenRect)
 		{
 			return m_viewport;
 		}
@@ -208,6 +212,10 @@ namespace d2d
 			int width, height;
 			SDL_GL_GetDrawableSize(m_windowPtr, &width, &height);
 			return{ (float)width, (float)height };
+		}
+		void GetScreenSize(int* width, int* height)
+		{
+			SDL_GL_GetDrawableSize(m_windowPtr, width, height);
 		}
 		float GetFPS()
 		{
@@ -250,6 +258,11 @@ namespace d2d
 		void SetViewRect(const Rect& proportionOfScreenRect)
 		{
 			m_viewport = ScreenRectToViewRect(proportionOfScreenRect);
+			glViewport(m_viewport.x, m_viewport.y, m_viewport.width, m_viewport.height);
+		}
+		void SetViewRect(const ViewRect& view)
+		{
+			m_viewport = view;
 			glViewport(m_viewport.x, m_viewport.y, m_viewport.width, m_viewport.height);
 		}
 		void SetCameraRect(const Rect& rect)

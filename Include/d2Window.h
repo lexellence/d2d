@@ -116,11 +116,13 @@ namespace d2d
 		void Close();
 
 		// Accessors
-		ViewRect GetViewRect(const Rect& proportionOfScreenRect);
+		ViewRect GetCurrentViewRect();
+		ViewRect CalculateViewRect(const Rect& proportionOfScreenRect);
 		float GetViewXYAspectRatio();
 		float GetScreenXYAspectRatio();
 		b2Vec2 GetViewSize();
 		b2Vec2 GetScreenSize();
+		void GetScreenSize(int* width, int* height);
 		float GetFPS();
 		b2Vec2 GetMousePositionAsPercentOfWindow(Sint32 eventMouseX, Sint32 eventMouseY);
 		b2Vec2 GetMousePositionAsPercentOfView(Sint32 eventMouseX, Sint32 eventMouseY, const Rect& proportionOfScreenRect);
@@ -129,6 +131,7 @@ namespace d2d
 
 		// Modifiers
 		void SetViewRect(const Rect& proportionOfScreenRect = { b2Vec2_zero, {1.0f,1.0f} });
+		void SetViewRect(const ViewRect& view);
 		void SetCameraRect(const Rect& rect);
 		void SetClearColor(const Color& newColor);
 		void SetShowCursor(bool enabled);
