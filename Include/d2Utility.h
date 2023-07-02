@@ -74,6 +74,10 @@ namespace d2d
 	{
 		using Exception::Exception;
 	};
+	struct TextureException : public Exception
+	{
+		using Exception::Exception;
+	};
 
 	// Physics
 	float CalculateKineticEnergy(b2Body* bodyPtr);

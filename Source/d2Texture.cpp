@@ -10,6 +10,7 @@
 #include "d2pch.h"
 #include "d2Texture.h"
 #include "d2Window.h"
+#include "d2Utility.h"
 namespace d2d
 {
     namespace
@@ -152,14 +153,14 @@ namespace d2d
             // filePaths[0]: path of the image file
             // filePaths[1]: path of the xml file with atlas data
             explicit TextureAtlasResource(const std::vector<std::string> &filePaths)
-                : TextureResource(filePaths)
-            {
+                : TextureResource(filePaths)            {
                 if (filePaths.size() < 2)
                     throw InitException{ "TextureAtlasResource requires two filePaths"s };
+                m_xmlPath = filePaths[1];
 
                 // Load atlas data
                 boost::property_tree::ptree data;
-                boost::property_tree::read_xml(filePaths[1], data);
+                boost::property_tree::read_xml(m_xmlPath, data);
 
                 int atlasWidth{data.get<int>("TextureAtlas.<xmlattr>.width")};
                 int atlasHeight{data.get<int>("TextureAtlas.<xmlattr>.height")};
@@ -234,11 +235,15 @@ namespace d2d
             }
             const TextureAtlasValue& GetValue(const std::string& spriteName) const
             {
-                return m_spriteMap.at(spriteName);
+                auto iter = m_spriteMap.find(spriteName);
+                if(iter == m_spriteMap.end())
+                    throw TextureException{ "Entry \"" + spriteName + "\" not found in texture atlas \"" + m_xmlPath + "\""};
+                return iter->second;
             }
 
         private:
             std::unordered_map<std::string, TextureAtlasValue> m_spriteMap;
+            std::string m_xmlPath;
         };
     }
 
