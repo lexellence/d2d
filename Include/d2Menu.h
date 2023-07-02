@@ -64,6 +64,7 @@ namespace d2d
 		const std::string& GetSubtitle() const;
 		void SetSubtitle(const std::string& title = {});
 
+		void PressButton(const std::string& label);
 		void ProcessEvent(const SDL_Event& event);
 		bool PollPressedButton(std::string& labelOut);
 		bool PollPressedButton(MenuButton& buttonOut);

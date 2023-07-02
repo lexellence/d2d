@@ -129,6 +129,17 @@ namespace d2d
 	{
 		m_subtitle = title;
 	}
+
+	void Menu::PressButton(const std::string& label)
+	{
+		for(int i=0; i < m_buttonList.size(); i++)
+			if(m_buttonList[i].label == label)
+			{
+				m_currentButton = i;
+				PressSelected();
+				return;
+			}
+	}
 	void Menu::ProcessEvent(const SDL_Event& event)
 	{
 		switch(event.type)
