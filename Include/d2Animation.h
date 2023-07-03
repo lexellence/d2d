@@ -15,17 +15,15 @@ namespace d2d
 	class AnimationFrame
 	{
 	public:
-		AnimationFrame(const Texture& texture,
-			float frameTime = 0.0f, const Color& tintColor = d2d::WHITE_OPAQUE,
+		AnimationFrame(const Texture& texture, float frameTime = 0.0f,
 			const b2Vec2& relativeSize = { 1.0f, 1.0f },
 			const b2Vec2& relativePosition = b2Vec2_zero, float relativeAngle = 0.0f);
-		void Draw(const b2Vec2& animationSize, const Color& animationColor) const;
+		void Draw(const b2Vec2& animationSize) const;
 		float GetFrameTime() const;
 
 	private:
 		Texture const* m_texturePtr{ nullptr };
 		float m_frameTime;
-		Color m_tintColor;
 		b2Vec2 m_relativeSize;
 		b2Vec2 m_relativePosition;
 		float m_relativeAngle;

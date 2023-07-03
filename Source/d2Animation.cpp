@@ -15,25 +15,22 @@ namespace d2d
 	//+--------------------------------\--------------------------------------
 	//|		   AnimationFrame		   |
 	//\--------------------------------/--------------------------------------
-	AnimationFrame::AnimationFrame(const Texture& texture,
-		float frameTime, const Color& tintColor,
+	AnimationFrame::AnimationFrame(const Texture& texture, float frameTime,
 		const b2Vec2& relativeSize, const b2Vec2& relativePosition, float relativeAngle)
 		: m_texturePtr{ &texture },
 		m_frameTime{ frameTime },
-		m_tintColor{ tintColor },
 		m_relativeSize{ relativeSize },
 		m_relativePosition{ relativePosition },
 		m_relativeAngle{ relativeAngle }
 	{
 
 	}
-	void AnimationFrame::Draw(const b2Vec2& animationSize, const Color& animationColor) const
+	void AnimationFrame::Draw(const b2Vec2& animationSize) const
 	{
 		b2Vec2 finalSize = animationSize * m_relativeSize;
 		Window::PushMatrix();
 		Window::Translate(m_relativePosition);
 		Window::Rotate(m_relativeAngle);
-		Window::SetColor(animationColor * m_tintColor);
 		Window::DrawTexture(*m_texturePtr, finalSize);
 		Window::PopMatrix();
 	}
@@ -139,7 +136,8 @@ namespace d2d
 			Window::PushMatrix();
 			Window::Translate(m_relativePosition);
 			Window::Rotate(m_relativeAngle);
-			GetCurrentFrame().Draw(entitySize * m_relativeSize, m_tintColor);
+			Window::SetColor(m_tintColor);
+			GetCurrentFrame().Draw(entitySize * m_relativeSize);
 			Window::PopMatrix();
 		}
 	}
