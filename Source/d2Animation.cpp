@@ -40,39 +40,17 @@ namespace d2d
 	}
 
 	//+--------------------------------\--------------------------------------
-	//|		    AnimationDef		   |
-	//\--------------------------------/--------------------------------------
-	AnimationDef::AnimationDef()
-	{
-		m_frameList.clear();
-	}
-	AnimationDef::AnimationDef(const AnimationFrame& frame)
-		: m_type{ AnimationType::STATIC },
-		m_firstFrame{ 0u }
-	{
-		m_frameList.push_back(frame);
-	}
-	AnimationDef::AnimationDef(const std::vector<AnimationFrame>& frameList,
-		AnimationType type, unsigned firstFrame, bool startForward)
-		: m_frameList{ frameList },
-		m_type{ type },
-		m_firstFrame{ firstFrame },
-		m_startForward{ startForward }
-	{
-		d2Assert(m_firstFrame < m_frameList.size());
-	}
-
-	//+--------------------------------\--------------------------------------
 	//|		      Animation	    	   |
 	//\--------------------------------/--------------------------------------
 	void Animation::Init(const AnimationDef& animationDef,
 		const b2Vec2& relativeSize, const b2Vec2& relativePosition,
 		float relativeAngle, const Color& tintColor)
 	{
+		d2Assert(animationDef.firstFrame < animationDef.frameList.size());
 		m_def = animationDef;
 		m_enabled = true;
-		m_currentFrame = m_def.m_firstFrame;
-		m_forward = m_def.m_startForward;
+		m_currentFrame = m_def.firstFrame;
+		m_forward = m_def.startForward;
 		m_frameTimeAccumulator = 0.0f;
 		m_flipX = false;
 		m_flipY = false;
@@ -93,7 +71,7 @@ namespace d2d
 	{
 		if (IsEnabled())
 		{
-			if(m_def.m_type == AnimationType::STATIC)
+			if(m_def.type == AnimationType::STATIC)
 				return;
 
 			m_frameTimeAccumulator += dt;
@@ -102,11 +80,11 @@ namespace d2d
 				// Go to next frame
 				m_frameTimeAccumulator -= GetCurrentFrame().GetFrameTime();
 				m_currentFrame += m_forward ? 1 : -1;
-				bool reachedEnd = m_forward && (m_currentFrame == m_def.m_frameList.size()) ||
+				bool reachedEnd = m_forward && (m_currentFrame == m_def.frameList.size()) ||
 								  !m_forward && (m_currentFrame == -1);
 
 				// Adjust based on animation type
-				switch(m_def.m_type)
+				switch(m_def.type)
 				{
 				default:
 				case AnimationType::SINGLE_PASS:
@@ -119,7 +97,7 @@ namespace d2d
 					break;
 				case AnimationType::LOOP:
 					if(reachedEnd)
-						m_currentFrame = m_forward ? 0 : m_def.m_frameList.size() - 1;
+						m_currentFrame = m_forward ? 0 : m_def.frameList.size() - 1;
 					break;
 				case AnimationType::PENDULUM:
 					if(reachedEnd)
@@ -147,13 +125,13 @@ namespace d2d
 	}
 	bool Animation::IsAnimated() const
 	{
-		return m_def.m_type != AnimationType::STATIC;
+		return m_def.type != AnimationType::STATIC;
 	}
 	void Animation::Restart()
 	{
 		m_enabled = true;
-		m_currentFrame = m_def.m_firstFrame;
-		m_forward = m_def.m_startForward;
+		m_currentFrame = m_def.firstFrame;
+		m_forward = m_def.startForward;
 		m_frameTimeAccumulator = 0.0f;
 	}
 	void Animation::SetTint(const Color& newTintColor)
@@ -162,6 +140,6 @@ namespace d2d
 	}
 	const AnimationFrame& Animation::GetCurrentFrame() const
 	{
-		return m_def.m_frameList[m_currentFrame];
+		return m_def.frameList[m_currentFrame];
 	}
 }

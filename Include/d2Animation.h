@@ -32,22 +32,12 @@ namespace d2d
 	{
 		STATIC, SINGLE_PASS, LOOP, PENDULUM
 	};
-	class AnimationDef
+	struct AnimationDef
 	{
-	public:
-
-		AnimationDef();
-		AnimationDef(const AnimationFrame& frame);
-		AnimationDef(const std::vector<AnimationFrame>& frameList,
-			AnimationType type = AnimationType::STATIC,
-			unsigned firstFrame = 0u, bool startForward = true);
-		friend class Animation;
-
-	private:
-		std::vector<AnimationFrame> m_frameList;
-		AnimationType m_type { AnimationType::STATIC };
-		unsigned m_firstFrame{ 0 };
-		bool m_startForward{ true };
+		std::vector<AnimationFrame> frameList;
+		AnimationType type { AnimationType::STATIC };
+		unsigned firstFrame{ 0 };
+		bool startForward{ true };
 	};
 	class Animation
 	{
