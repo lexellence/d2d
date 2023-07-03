@@ -58,7 +58,7 @@ namespace d2d
 	private:
 		AnimationDef m_def;
 		bool m_enabled{ false };
-		unsigned m_currentFrame;
+		int m_currentFrame;
 		bool m_forward;
 		float m_frameTimeAccumulator;
 		bool m_flipX;
