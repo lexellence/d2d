@@ -13,33 +13,6 @@
 namespace d2d
 {
 	//+--------------------------------\--------------------------------------
-	//|		   AnimationFrame		   |
-	//\--------------------------------/--------------------------------------
-	AnimationFrame::AnimationFrame(const Texture& texture, float frameTime,
-		const b2Vec2& relativeSize, const b2Vec2& relativePosition, float relativeAngle)
-		: m_texturePtr{ &texture },
-		m_frameTime{ frameTime },
-		m_relativeSize{ relativeSize },
-		m_relativePosition{ relativePosition },
-		m_relativeAngle{ relativeAngle }
-	{
-
-	}
-	void AnimationFrame::Draw(const b2Vec2& animationSize) const
-	{
-		b2Vec2 finalSize = animationSize * m_relativeSize;
-		Window::PushMatrix();
-		Window::Translate(m_relativePosition);
-		Window::Rotate(m_relativeAngle);
-		Window::DrawTexture(*m_texturePtr, finalSize);
-		Window::PopMatrix();
-	}
-	float AnimationFrame::GetFrameTime() const
-	{
-		return m_frameTime;
-	}
-
-	//+--------------------------------\--------------------------------------
 	//|		      Animation	    	   |
 	//\--------------------------------/--------------------------------------
 	void Animation::Init(const AnimationDef& animationDef,
@@ -75,10 +48,10 @@ namespace d2d
 				return;
 
 			m_frameTimeAccumulator += dt;
-			if(m_frameTimeAccumulator >= GetCurrentFrame().GetFrameTime())
+			if(m_frameTimeAccumulator >= GetCurrentFrame().frameTime)
 			{
 				// Go to next frame
-				m_frameTimeAccumulator -= GetCurrentFrame().GetFrameTime();
+				m_frameTimeAccumulator -= GetCurrentFrame().frameTime;
 				m_currentFrame += m_forward ? 1 : -1;
 				bool reachedEnd = m_forward && (m_currentFrame == m_def.frameList.size()) ||
 								  !m_forward && (m_currentFrame == -1);
@@ -111,12 +84,24 @@ namespace d2d
 	{
 		if (IsEnabled())
 		{
-			Window::PushMatrix();
-			Window::Translate(m_relativePosition);
-			Window::Rotate(m_relativeAngle);
-			Window::SetColor(m_tintColor);
-			GetCurrentFrame().Draw(entitySize * m_relativeSize);
-			Window::PopMatrix();
+			const AnimationFrame& frame = GetCurrentFrame();
+			if(frame.texturePtr)
+			{
+				Window::SetColor(m_tintColor);
+
+				Window::PushMatrix();
+				Window::Translate(m_relativePosition);
+				Window::Rotate(m_relativeAngle);
+				{
+					Window::PushMatrix();
+					Window::Translate(frame.relativePosition);
+					Window::Rotate(frame.relativeAngle);
+					b2Vec2 drawSize = entitySize * m_relativeSize * frame.relativeSize;
+					Window::DrawTexture(*frame.texturePtr, drawSize);
+					Window::PopMatrix();
+				}
+				Window::PopMatrix();
+			}
 		}
 	}
 	bool Animation::IsEnabled() const

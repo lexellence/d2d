@@ -12,21 +12,13 @@
 #include "d2Color.h"
 namespace d2d
 {
-	class AnimationFrame
+	struct AnimationFrame
 	{
-	public:
-		AnimationFrame(const Texture& texture, float frameTime = 0.0f,
-			const b2Vec2& relativeSize = { 1.0f, 1.0f },
-			const b2Vec2& relativePosition = b2Vec2_zero, float relativeAngle = 0.0f);
-		void Draw(const b2Vec2& animationSize) const;
-		float GetFrameTime() const;
-
-	private:
-		Texture const* m_texturePtr{ nullptr };
-		float m_frameTime;
-		b2Vec2 m_relativeSize;
-		b2Vec2 m_relativePosition;
-		float m_relativeAngle;
+		Texture* texturePtr{};
+		float frameTime{};
+		b2Vec2 relativeSize{ 1.0f, 1.0f };
+		b2Vec2 relativePosition{ b2Vec2_zero };
+		float relativeAngle{};
 		};
 	enum class AnimationType
 	{
