@@ -94,7 +94,8 @@ namespace d2d
 			}
 		}
 	}
-	void ShapeFactory::AddCircleShape(b2Body& bodyRef, float size,
+
+	b2Fixture* ShapeFactory::AddCircleShape(b2Body& bodyRef, float size,
 		const d2d::Material& material, const Filter& filter,
 		bool isSensor, const b2Vec2& position)
 	{
@@ -109,9 +110,10 @@ namespace d2d
 		fixtureDef.restitution = material.restitution;
 		fixtureDef.filter = filter.filter;
 		fixtureDef.isSensor = isSensor;
-		bodyRef.CreateFixture(&fixtureDef);
+		return bodyRef.CreateFixture(&fixtureDef);
 	}
-	void ShapeFactory::AddRectShape(b2Body& bodyRef, const b2Vec2& size,
+
+	b2Fixture* ShapeFactory::AddRectShape(b2Body& bodyRef, const b2Vec2& size,
 		const d2d::Material& material, const Filter& filter, bool isSensor,
 		const b2Vec2& position, float angle)
 	{
@@ -133,9 +135,10 @@ namespace d2d
 		fixtureDef.restitution = material.restitution;
 		fixtureDef.filter = filter.filter;
 		fixtureDef.isSensor = isSensor;
-		bodyRef.CreateFixture(&fixtureDef);
+		return bodyRef.CreateFixture(&fixtureDef);
 	}
-	void ShapeFactory::AddShapes(b2Body& b2BodyRef, const b2Vec2& size,
+
+	std::vector<b2Fixture*> ShapeFactory::AddShapes(b2Body& b2BodyRef, const b2Vec2& size,
 		const std::string& modelName, const Material& material, const Filter& filter,
 		bool isSensor, const b2Vec2& position, float angle)
 	{
@@ -143,6 +146,7 @@ namespace d2d
 		if (bodyIterator == m_bodyMap.end())
 			throw InitException{ "Failed to get body definition: " + modelName };
 
+		std::vector<b2Fixture*> fixturePtrList;
 		b2Transform localTransform{ position, b2Rot{ angle } };
 		for (auto& fixtureGroup : bodyIterator->second.fixtureGroups)
 		{
@@ -158,7 +162,7 @@ namespace d2d
 				circleShape.m_p = fixtureGroup.circle.center * size;
 				circleShape.m_radius = fixtureGroup.circle.radiusRelativeToWidth * size.x;
 				fixtureDef.shape = &circleShape;
-				b2BodyRef.CreateFixture(&fixtureDef);
+				fixturePtrList.push_back(b2BodyRef.CreateFixture(&fixtureDef));
 			}
 			else
 			{
@@ -176,9 +180,10 @@ namespace d2d
 					b2PolygonShape polygonShape;
 					polygonShape.Set(vertices, polygon.numVertices);
 					fixtureDef.shape = &polygonShape;
-					b2BodyRef.CreateFixture(&fixtureDef);
+					fixturePtrList.push_back(b2BodyRef.CreateFixture(&fixtureDef));
 				}
 			}
 		}
+		return fixturePtrList;
 	}
 }

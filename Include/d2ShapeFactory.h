@@ -68,13 +68,13 @@ namespace d2d
 	{
 	public:
 		void LoadFrom(const std::string& filePath);
-		void AddCircleShape(b2Body& bodyRef, float size,
+		b2Fixture* AddCircleShape(b2Body& bodyRef, float size,
 			const d2d::Material& material, const Filter& filter,
 			bool isSensor = false, const b2Vec2& position = b2Vec2_zero);
-		void AddRectShape(b2Body& bodyRef, const b2Vec2& size,
+		b2Fixture* AddRectShape(b2Body& bodyRef, const b2Vec2& size,
 			const d2d::Material& material, const Filter& filter,
 			bool isSensor = false, const b2Vec2& position = b2Vec2_zero, float angle = 0.0f);
-		void AddShapes(b2Body& bodyRef, const b2Vec2& size, const std::string& modelName,
+		std::vector<b2Fixture*> AddShapes(b2Body& bodyRef, const b2Vec2& size, const std::string& modelName,
 			const Material& material, const Filter& filter, bool isSensor=false,
 			const b2Vec2& position = b2Vec2_zero, float angle = 0.0f);
 
